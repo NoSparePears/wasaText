@@ -1,0 +1,658 @@
+openapi: 3.0.3
+info:
+  title: WASAtext
+  description: |-
+    homework wasa
+  version: 0.0.1
+
+tags:
+  - name: "Login"
+    description: |
+      login operations
+  - name: "User"
+    description: |
+      user operations
+  - name: "Conversation"
+    description: |
+      conversation operations
+  - name: "Group"
+    description: |
+      group operations
+paths:
+  /session:
+    post:
+      tags: ["Login"]
+      summary: Logs in the user
+      description: |-
+        If the user does not exist, it will be created,
+        and an identifier is returned.
+        If the user exists, the user identifier is returned.
+      operationId: doLogin
+      requestBody:
+        description: User details
+        content:
+          application/json:
+            schema:
+              description: |
+                the username of the user who wants to login
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Maria
+                  pattern: "ˆ.*?$"
+                  minLength: 3
+                  maxLength: 16
+        required: true
+      responses:
+        "201":
+          description: User log-in action successful
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  identifier:
+                    #change here if you decide to usE integer
+                    #or any other type of identifier
+                    type: integer
+                    example: "23"
+                    minimum: 1
+                    maximum: 101
+
+  /profiles/{user_id}/username:
+    parameters:
+      - $ref: "#/components/parameters/user_id"
+    put:
+      tags: ["User"]
+      summary: set username
+      operationId: setMyUsername
+      description: user can change his username if not already taken
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: username to set
+        content:
+          application/json:
+            schema:
+              description: the new username of the user
+              type: object
+              properties:
+                username: { $ref: "#/components/schemas/Username" }
+        required: true
+      responses:
+        "200":
+          description: new username set succesfully
+          content:
+            plain/text:
+              schema: { $ref: "#/components/schemas/Ok" }
+        "400": { $ref: "#/components/responses/badRequest" }
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+  /profiles/{user_id}/photo:
+    parameters:
+      - $ref: "#/components/parameters/user_id"
+    put:
+      tags: ["User"]
+      summary: set profile photo
+      operationId: setMyPhoto
+      description: user can change his profile picture
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: photo to set
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                photo: { $ref: "#/components/schemas/Photo" }
+        required: true
+      responses:
+        "200":
+          description: new username set succesfully
+          content:
+            plain/text:
+              schema: { $ref: "#/components/schemas/Ok" }
+        "400": { $ref: "#/components/responses/badRequest" }
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+  /profiles/{user_id}/conversations:
+    parameters:
+      - $ref: "#/components/parameters/user_id"
+    put: #put o post???
+      tags: ["Conversation"]
+      summary: create new conversation
+      operationId: createConversation
+      description: create new conversation, unless it doesn't already exists
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                new_user_id:
+                  $ref: "#/components/schemas/Identificator"
+        required: true
+      responses:
+        "200":
+          description: convo created succesfully
+          content:
+            plain/text:
+              schema: { $ref: "#/components/schemas/Conversation" }
+        "400": { $ref: "#/components/responses/badRequest" }
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+    get:
+      summary: list all conversations
+      tags: ["Conversation"]
+      operationId: getMyConversations
+      description: Obtain list of all user's conversations, in reverse order
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: conversations list obtained succesfully
+          content:
+            plain/text:
+              schema: { $ref: "#/components/schemas/ConversationsList" }
+        "400": { $ref: "#/components/responses/badRequest" }
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+  /profiles/{user_id}/conversations/{convo_id}:
+    parameters:
+      - $ref: "#/components/parameters/user_id"
+      - $ref: "#/components/parameters/convo_id"
+    get:
+      tags: ["Conversation"]
+      summary: open existing conversation
+      operationId: getConversation
+      description: open an already created conversation
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: convo opened succesfully
+          content:
+            plain/text:
+              schema: { $ref: "#/components/schemas/Ok" }
+        "400": { $ref: "#/components/responses/badRequest" }
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+    delete:
+      tags: ["Conversation"]
+      summary: delete existing conversation
+      operationId: deleteConversation
+      description: user deletes conversation
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: convo opened succesfully
+          content:
+            plain/text:
+              schema: { $ref: "#/components/schemas/Ok" }
+        "400": { $ref: "#/components/responses/badRequest" }
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+  /profiles/{user_id}/conversations/{convo_id}/messages:
+    parameters:
+      - $ref: "#/components/parameters/user_id"
+      - $ref: "#/components/parameters/convo_id"
+    post:
+      parameters:
+        - name: reply
+          in: query
+          required: false
+          schema: {$ref: "#/components/schemas/Identificator"}
+      tags: ["Conversation"]
+      summary: send message
+      operationId: sendMessage
+      description: send new message in the selected conversation
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              oneOf:
+                - $ref: "#/components/schemas/Text"
+                - $ref: "#/components/schemas/Photo"
+                - $ref: "#/components/schemas/Gif"
+      responses:
+        "200":
+          description: message sent succesfully
+          content:
+            plain/text:
+              schema: { $ref: "#/components/schemas/Ok" }
+        "400": { $ref: "#/components/responses/badRequest" }
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+  /profiles/{user_id}/conversations/{convo_id}/messages/{msg_id}:
+    parameters:
+      - $ref: "#/components/parameters/user_id"
+      - $ref: "#/components/parameters/convo_id"
+      - $ref: "#/components/parameters/msg_id"
+    delete:
+      tags: ["Conversation"]
+      summary: delete message
+      operationId: deleteMessage
+      description: user deletes message
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: message deleted succesfully
+          content:
+            plain/text:
+              schema: { $ref: "#/components/schemas/Ok" }
+        "400": { $ref: "#/components/responses/badRequest" }
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+    post:
+      parameters:
+        - name: forward
+          in: query
+          required: true
+          schema: {$ref: "#/components/schemas/Identificator"}
+      tags: ["Conversation"]
+      summary: forward message
+      description: send existing message in the selected conversation
+      operationId: forwardMessage
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: message sent succesfully
+          content:
+            plain/text:
+              schema: { $ref: "#/components/schemas/Ok" }
+        "400": { $ref: "#/components/responses/badRequest" }
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+      
+
+  /profiles/{user_id}/conversations/{convo_id}/messages/{msg_id}/comments:
+    parameters:
+      - $ref: "#/components/parameters/user_id"
+      - $ref: "#/components/parameters/convo_id"
+      - $ref: "#/components/parameters/msg_id"
+    put:
+      tags: ["Conversation"]
+      summary: comment message
+      operationId: commentMessage
+      description: user comments specific message with an emoji
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Emoji"
+        required: true
+      responses:
+        "200":
+          description: message commented succesfully
+          content:
+            plain/text:
+              schema: { $ref: "#/components/schemas/Ok" }
+        "400": { $ref: "#/components/responses/badRequest" }
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+  /profiles/{user_id}/conversations/{convo_id}/messages/{msg_id}/comments/{comm_id}:
+    parameters:
+      - $ref: "#/components/parameters/user_id"
+      - $ref: "#/components/parameters/convo_id"
+      - $ref: "#/components/parameters/msg_id"
+      - $ref: "#/components/parameters/comm_id"
+    delete:
+      tags: ["Conversation"]
+      summary: delete comment
+      operationId: uncommentMessage
+      description: user deletes comment that he already put on a message
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: comment deleted succesfully
+          content:
+            plain/text:
+              schema: { $ref: "#/components/schemas/Ok" }
+        "400": { $ref: "#/components/responses/badRequest" }
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+  /profiles/{user_id}/groups:
+    parameters:
+      - $ref: "#/components/parameters/user_id"
+    put:
+      tags: ["Group"]
+      summary: create group
+      operationId: createGroup
+      description: user creates group
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: group created succesfully
+          content:
+            plain/text:
+              schema: { $ref: "#/components/schemas/Ok" }
+        "400": { $ref: "#/components/responses/badRequest" }
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+  /profiles/{user_id}/groups/{group_id}/g_name:
+    parameters:
+      - $ref: "#/components/parameters/user_id"
+      - $ref: "#/components/parameters/group_id"
+    put:
+      tags: ["Group"]
+      summary: set the group's name
+      operationId: setGroupName
+      description: user sets the group's name
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: group name set succesfully
+          content:
+            plain/text:
+              schema: { $ref: "#/components/schemas/Ok" }
+        "400": { $ref: "#/components/responses/badRequest" }
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+  /profiles/{user_id}/groups/{group_id}/g_photo:
+    parameters:
+      - $ref: "#/components/parameters/user_id"
+      - $ref: "#/components/parameters/group_id"
+    put:
+      tags: ["Group"]
+      summary: set photo for a group
+      operationId: setGroupPhoto
+      description: user can change his profile picture
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: photo to set
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                photo: { $ref: "#/components/schemas/Photo" }
+        required: true
+      responses:
+        "200":
+          description: group photo set succesfully
+          content:
+            plain/text:
+              schema: { $ref: "#/components/schemas/Ok" }
+        "400": { $ref: "#/components/responses/badRequest" }
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+  /profiles/{user_id}/groups/{group_id}:
+    parameters:
+      - $ref: "#/components/parameters/user_id"
+      - $ref: "#/components/parameters/group_id"
+    delete:
+      tags: ["Group"]
+      summary: user leaves group
+      operationId: leaveGroup
+      description: user can leave given group
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: group left succesfully
+          content:
+            plain/text:
+              schema: { $ref: "#/components/schemas/Ok" }
+        "400": { $ref: "#/components/responses/badRequest" }
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+  /profiles/{user_id}/groups/{group_id}/members:
+    parameters:
+      - $ref: "#/components/parameters/user_id"
+      - $ref: "#/components/parameters/group_id"
+    put:
+      tags: ["Group"]
+      summary: add specific user to group
+      operationId: addToGroup
+      description: user can add a new user to a specific group
+      security:
+        - bearerAuth: []
+      requestBody:
+        description: user to add
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                new_user_id:
+                  $ref: "#/components/schemas/Identificator"
+        required: true
+      responses:
+        "200":
+          description: user added succesfully
+          content:
+            plain/text:
+              schema: { $ref: "#/components/schemas/Ok" }
+        "400": { $ref: "#/components/responses/badRequest" }
+        "401": { $ref: "#/components/responses/unauthorized" }
+        "403": { $ref: "#/components/responses/forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
+#---------------------------COMPONENTS--------------------------#
+
+components:
+  parameters: #tutto cio che prendi nei path
+    user_id:
+      name: user_id
+      description: id of a given user
+      in: path
+      required: true
+      schema: { $ref: "#/components/schemas/Identificator" }
+
+    convo_id:
+      name: convo_id
+      description: id of a conversation user
+      in: path
+      required: true
+      schema: { $ref: "#/components/schemas/Identificator" }
+
+    msg_id:
+      name: msg_id
+      description: id of a given message
+      in: path
+      required: true
+      schema: { $ref: "#/components/schemas/Identificator" }
+    comm_id:
+      name: comm_id
+      description: id of a given comment
+      in: path
+      required: true
+      schema: { $ref: "#/components/schemas/Identificator" }
+    group_id:
+      name: group_id
+      description: id of a given group
+      in: path
+      required: true
+      schema: { $ref: "#/components/schemas/Identificator" }
+
+  schemas:
+    Identificator:
+      description: id for user/conversation/group/message
+      type: integer
+      minimum: 1
+      maximum: 999
+      example: 9
+    Username:
+      description: name of user
+      type: string
+      pattern: ^[a-z0-9]{3,13}$
+      example: "haru22"
+      minLength: 3
+      maxLength: 13
+    Photo:
+      description: image
+      type: object
+      properties:
+        photo:
+          type: string
+          format: byte
+          minLength: 0
+          maxLength: 9999
+    Profile:
+      description: user profile
+      type: object
+      properties:
+        user_id: { $ref: "#/components/schemas/Identificator" }
+        username: { $ref: "#/components/schemas/Username" }
+        photo: { $ref: "#/components/schemas/Photo" }
+    ConversationsList:
+      description: user's conversation list
+      type: object
+      properties:
+        conversations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Conversation"
+          minItems: 1
+          maxItems: 999
+      required:
+        - conversations
+    Conversation:
+      description: user's conversation
+      type: object
+      properties:
+        convo_id: { $ref: "#/components/schemas/Identificator" }
+        user_id: { $ref: "#/components/schemas/Identificator" }
+    Message:
+      description: user's message in a convo/group
+      type: object
+      properties:
+        msg_id: { $ref: "#/components/schemas/Identificator" }
+        timestamp: { $ref: "#/components/schemas/Timestamp" }
+        content:
+          oneOf:
+            - $ref: "#/components/schemas/Text"
+            - $ref: "#/components/schemas/Photo"
+            - $ref: "#/components/schemas/Gif"
+    Comment:
+      description: user's comment on a given message
+      type: object
+      properties:
+        comm_id: { $ref: "#/components/schemas/Identificator" }
+        emoji: { $ref: "#/components/schemas/Emoji" }
+    Text:
+      description: text of the message
+      type: object
+      properties:
+        text:
+          type: string
+          example: "Hey, come stai?"
+          pattern: '^[^\/\\]{0,64}$'
+          minLength: 1
+          maxLength: 65536
+    Emoji:
+      type: object
+      description: a single emoji, represented by its Unicode character.
+      properties:
+        emoji:
+          type: string
+          example: "😊"
+    Timestamp:
+      title: timestamp
+      description: the timestamp of the message
+      type: string
+      format: date-time
+      pattern: "^[0-9]{4}-[0-9]{2}-[0-9]{2}T[0-9]{2}:[0-9]{2}:[0-9]{2}$"
+      example: "2020-12-31T23:59:59"
+      minLength: 19
+      maxLength: 19
+    Gif:
+      description: gif file
+      type: object
+      properties:
+        gif:
+          type: string
+          format: byte
+          minLength: 0
+          maxLength: 9999
+    Ok:
+      title: OK
+      description: The succesfull response from server.
+      type: string
+      example: "OK, action successfully completed"
+      minLength: 2
+      maxLength: 200
+  securitySchemes:
+    bearerAuth: # arbitrary name for the security scheme
+      type: http
+      scheme: bearer
+  responses:
+    #400
+    badRequest:
+      description: The request was not compliant with the documentation (eg. missing fields, etc).
+      content:
+        text/plain:
+          schema:
+            description: BadRequest
+            type: string
+            example: "Bad Request"
+            minLength: 11
+            maxLength: 30
+
+    #401
+    unauthorized:
+      description: The access token is missing or it's expired.
+      content:
+        text/plain:
+          schema:
+            description: Unauthorized
+            type: string
+            example: "Unauthorized"
+            minLength: 12
+            maxLength: 30
+
+    #403
+    forbidden:
+      description: The user is not allowed to perform the action.
+      content:
+        text/plain:
+          schema:
+            description: Forbidden
+            type: string
+            example: "Forbidden"
+            minLength: 9
+            maxLength: 30
+
+    #500
+    InternalServerError:
+      description: The server encountered an internal error. Further info in server logs.
+      content:
+        text/plain:
+          schema:
+            description: InternalServerError
+            type: string
+            example: "Internal Server Error"
+            minLength: 21
+            maxLength: 30
+
