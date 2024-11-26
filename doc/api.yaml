@@ -35,20 +35,21 @@ paths:
               description: chosen user name
               type: object
               properties:
-                name: { $ref: "#components/schemas/Username"}
+                name: { $ref: "#/components/schemas/Username"}
         required: true
       responses:
         "200":
           description: User log-in action succesfull
           content:
             application/json:
-              schema: { $ref: "#components/schemas/Identificator"}
+              schema: { $ref: "#/components/schemas/Identificator"}
         "201":
           description: Account created succesfully
           content:
             application/json:
-              schema: {$ref: "#components/schemas/Identificator"}
+              schema: {$ref: "#/components/schemas/Identificator"}
         "400": { $ref: "#/components/responses/BadRequest"}
+        "403": { $ref: "#/components/responses/Forbidden" }
         "500": { $ref: "#/components/responses/BadRequest"}
                 
 
@@ -78,10 +79,10 @@ paths:
           content:
             plain/text:
               schema: { $ref: "#/components/schemas/Profile" }
-        "400": { $ref: "#/components/responses/badRequest" }
-        "401": { $ref: "#/components/responses/unauthorized" }
-        "403": { $ref: "#/components/responses/forbidden" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "500": { $ref: "#/components/responses/BadRequest" }
   /profiles/{user_id}/photo:
     parameters:
       - $ref: "#/components/parameters/user_id"
@@ -99,7 +100,7 @@ paths:
             schema:
               type: object
               properties:
-                photo: { $ref: "#/components/schemas/Photo" }
+                photo: { $ref: "#/components/schemas/PhotoOrGif" }
         required: true
       responses:
         "200":
@@ -107,9 +108,9 @@ paths:
           content:
             plain/text:
               schema: { $ref: "#/components/schemas/Profile" }
-        "400": { $ref: "#/components/responses/badRequest" }
-        "401": { $ref: "#/components/responses/unauthorized" }
-        "403": { $ref: "#/components/responses/forbidden" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
         "500": { $ref: "#/components/responses/InternalServerError" }
   /profiles/{user_id}/conversations:
     parameters:
@@ -127,15 +128,16 @@ paths:
           content:
             plain/text:
               schema: { $ref: "#/components/schemas/ConversationsList" }
-        "400": { $ref: "#/components/responses/badRequest" }
-        "401": { $ref: "#/components/responses/unauthorized" }
-        "403": { $ref: "#/components/responses/forbidden" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
         "500": { $ref: "#/components/responses/InternalServerError" }
-  /profiles/{user_id}/conversations/{new_user_id}:
+  /profiles/{user_id}/conversations/{dest_user_id}:
     parameters:
       - $ref: "#/components/parameters/user_id"
-      - $ref: "#/components/parameters/user_id"
+      - $ref: "#/components/parameters/convo_id"
     put: 
+      tags: ["Conversation"]
       summary: create new conversation
       operationId: createConversation
       description: create new conversation, unless it doesn't already exists
@@ -144,27 +146,18 @@ paths:
       requestBody:
         content:
           application/json:
-            schema:
-              type: object
-              properties:
-                new_user_id:
-                  $ref: "#/components/schemas/Identificator"
+            schema: {$ref: "#/components/schemas/NewUserId"}
         required: true
       responses:
         "200":
           description: convo created succesfully
           content:
-            plain/text:
+           application/json:
               schema: { $ref: "#/components/schemas/Conversation" }
-        "400": { $ref: "#/components/responses/badRequest" }
-        "401": { $ref: "#/components/responses/unauthorized" }
-        "403": { $ref: "#/components/responses/forbidden" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
         "500": { $ref: "#/components/responses/InternalServerError" }     
-        
-  /profiles/{user_id}/conversations/{convo_id}:
-    parameters:
-      - $ref: "#/components/parameters/user_id"
-      - $ref: "#/components/parameters/convo_id"
     get:
       tags: ["Conversation"]
       summary: open existing conversation
@@ -177,10 +170,10 @@ paths:
           description: convo opened succesfully
           content:
             plain/text:
-              schema: { $ref: "#/components/schemas/Ok" }
-        "400": { $ref: "#/components/responses/badRequest" }
-        "401": { $ref: "#/components/responses/unauthorized" }
-        "403": { $ref: "#/components/responses/forbidden" }
+              schema: { $ref: "#/components/schemas/Conversation" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
         "500": { $ref: "#/components/responses/InternalServerError" }
     delete:
       tags: ["Conversation"]
@@ -195,11 +188,11 @@ paths:
           content:
             plain/text:
               schema: { $ref: "#/components/schemas/Ok" }
-        "400": { $ref: "#/components/responses/badRequest" }
-        "401": { $ref: "#/components/responses/unauthorized" }
-        "403": { $ref: "#/components/responses/forbidden" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
-  /profiles/{user_id}/conversations/{convo_id}/messages:
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" } 
+  /profiles/{user_id}/conversations/{dest_user_id}/messages:
     parameters:
       - $ref: "#/components/parameters/user_id"
       - $ref: "#/components/parameters/convo_id"
@@ -220,21 +213,20 @@ paths:
         content:
           application/json:
             schema:
-              oneOf:
+              anyOf:
                 - $ref: "#/components/schemas/Text"
-                - $ref: "#/components/schemas/Photo"
-                - $ref: "#/components/schemas/Gif"
+                - $ref: "#/components/schemas/PhotoOrGif"
       responses:
         "200":
           description: message sent succesfully
           content:
             plain/text:
               schema: { $ref: "#/components/schemas/Ok" }
-        "400": { $ref: "#/components/responses/badRequest" }
-        "401": { $ref: "#/components/responses/unauthorized" }
-        "403": { $ref: "#/components/responses/forbidden" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
         "500": { $ref: "#/components/responses/InternalServerError" }
-  /profiles/{user_id}/conversations/{convo_id}/messages/{msg_id}:
+  /profiles/{user_id}/conversations/{dest_user_id}/messages/{msg_id}:
     parameters:
       - $ref: "#/components/parameters/user_id"
       - $ref: "#/components/parameters/convo_id"
@@ -252,9 +244,9 @@ paths:
           content:
             plain/text:
               schema: { $ref: "#/components/schemas/Ok" }
-        "400": { $ref: "#/components/responses/badRequest" }
-        "401": { $ref: "#/components/responses/unauthorized" }
-        "403": { $ref: "#/components/responses/forbidden" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
         "500": { $ref: "#/components/responses/InternalServerError" }
     post:
       parameters:
@@ -274,13 +266,13 @@ paths:
           content:
             plain/text:
               schema: { $ref: "#/components/schemas/Ok" }
-        "400": { $ref: "#/components/responses/badRequest" }
-        "401": { $ref: "#/components/responses/unauthorized" }
-        "403": { $ref: "#/components/responses/forbidden" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
         "500": { $ref: "#/components/responses/InternalServerError" }
       
 
-  /profiles/{user_id}/conversations/{convo_id}/messages/{msg_id}/comments:
+  /profiles/{user_id}/conversations/{dest_user_id}/messages/{msg_id}/comments:
     parameters:
       - $ref: "#/components/parameters/user_id"
       - $ref: "#/components/parameters/convo_id"
@@ -304,11 +296,11 @@ paths:
           content:
             plain/text:
               schema: { $ref: "#/components/schemas/Ok" }
-        "400": { $ref: "#/components/responses/badRequest" }
-        "401": { $ref: "#/components/responses/unauthorized" }
-        "403": { $ref: "#/components/responses/forbidden" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
         "500": { $ref: "#/components/responses/InternalServerError" }
-  /profiles/{user_id}/conversations/{convo_id}/messages/{msg_id}/comments/{comm_id}:
+  /profiles/{user_id}/conversations/{dest_user_id}/messages/{msg_id}/comments/{comm_id}:
     parameters:
       - $ref: "#/components/parameters/user_id"
       - $ref: "#/components/parameters/convo_id"
@@ -327,29 +319,39 @@ paths:
           content:
             plain/text:
               schema: { $ref: "#/components/schemas/Ok" }
-        "400": { $ref: "#/components/responses/badRequest" }
-        "401": { $ref: "#/components/responses/unauthorized" }
-        "403": { $ref: "#/components/responses/forbidden" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
         "500": { $ref: "#/components/responses/InternalServerError" }
   /profiles/{user_id}/groups:
     parameters:
       - $ref: "#/components/parameters/user_id"
-    put:
+    post:
       tags: ["Group"]
       summary: create group
       operationId: createGroup
       description: user creates group
       security:
         - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              description: user inputs name and partecipants of the group
+              type: object
+              properties:
+                name: { $ref: "#/components/schemas/GroupName"}
+                users: { $ref: "#/components/schemas/ProfilesList"}
+        required: true
       responses:
         "200":
           description: group created succesfully
           content:
             plain/text:
-              schema: { $ref: "#/components/schemas/Ok" }
-        "400": { $ref: "#/components/responses/badRequest" }
-        "401": { $ref: "#/components/responses/unauthorized" }
-        "403": { $ref: "#/components/responses/forbidden" }
+              schema: { $ref: "#/components/schemas/Group" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
         "500": { $ref: "#/components/responses/InternalServerError" }
   /profiles/{user_id}/groups/{group_id}/g_name:
     parameters:
@@ -368,9 +370,9 @@ paths:
           content:
             plain/text:
               schema: { $ref: "#/components/schemas/Ok" }
-        "400": { $ref: "#/components/responses/badRequest" }
-        "401": { $ref: "#/components/responses/unauthorized" }
-        "403": { $ref: "#/components/responses/forbidden" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
         "500": { $ref: "#/components/responses/InternalServerError" }
   /profiles/{user_id}/groups/{group_id}/g_photo:
     parameters:
@@ -390,7 +392,7 @@ paths:
             schema:
               type: object
               properties:
-                photo: { $ref: "#/components/schemas/Photo" }
+                photo: { $ref: "#/components/schemas/PhotoOrGif" }
         required: true
       responses:
         "200":
@@ -398,9 +400,9 @@ paths:
           content:
             plain/text:
               schema: { $ref: "#/components/schemas/Ok" }
-        "400": { $ref: "#/components/responses/badRequest" }
-        "401": { $ref: "#/components/responses/unauthorized" }
-        "403": { $ref: "#/components/responses/forbidden" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
         "500": { $ref: "#/components/responses/InternalServerError" }
   /profiles/{user_id}/groups/{group_id}:
     parameters:
@@ -419,9 +421,9 @@ paths:
           content:
             plain/text:
               schema: { $ref: "#/components/schemas/Ok" }
-        "400": { $ref: "#/components/responses/badRequest" }
-        "401": { $ref: "#/components/responses/unauthorized" }
-        "403": { $ref: "#/components/responses/forbidden" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
         "500": { $ref: "#/components/responses/InternalServerError" }
   /profiles/{user_id}/groups/{group_id}/members:
     parameters:
@@ -450,9 +452,9 @@ paths:
           content:
             plain/text:
               schema: { $ref: "#/components/schemas/Ok" }
-        "400": { $ref: "#/components/responses/badRequest" }
-        "401": { $ref: "#/components/responses/unauthorized" }
-        "403": { $ref: "#/components/responses/forbidden" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
         "500": { $ref: "#/components/responses/InternalServerError" }
 
 #---------------------------COMPONENTS--------------------------#
@@ -465,9 +467,8 @@ components:
       in: path
       required: true
       schema: { $ref: "#/components/schemas/Identificator" }
-
     convo_id:
-      name: convo_id
+      name: dest_user_id
       description: id of a conversation user
       in: path
       required: true
@@ -506,7 +507,21 @@ components:
       example: "haru22"
       minLength: 3
       maxLength: 13
-    Photo:
+    NewUserId:
+      description: id of another user
+      type: object
+      properties:  
+        id: {$ref: "#/components/schemas/Identificator"}
+      required:
+        - id 
+    GroupName:
+      description: name of group
+      type: string
+      pattern: ^[a-z0-9]{3,13}$
+      example: "Informatica Canale M/Z"
+      minLength: 3 
+      maxLength: 100
+    PhotoOrGif:
       description: image
       type: object
       properties:
@@ -521,7 +536,19 @@ components:
       properties:
         user_id: { $ref: "#/components/schemas/Identificator" }
         username: { $ref: "#/components/schemas/Username" }
-        photo: { $ref: "#/components/schemas/Photo" }
+        photo: { $ref: "#/components/schemas/PhotoOrGif" }
+    ProfilesList:
+      description: searched user's list
+      type: object
+      properties:
+        profiles:
+          type: array
+          items:
+            $ref: "#/components/schemas/Profile"
+          minItems: 0 
+          maxItems: 999
+      required:
+        - profiles 
     ConversationsList:
       description: user's conversation list
       type: object
@@ -530,7 +557,7 @@ components:
           type: array
           items:
             $ref: "#/components/schemas/Conversation"
-          minItems: 1
+          minItems: 0 
           maxItems: 999
       required:
         - conversations
@@ -540,6 +567,18 @@ components:
       properties:
         convo_id: { $ref: "#/components/schemas/Identificator" }
         user_id: { $ref: "#/components/schemas/Identificator" }
+    Group:
+      description: group of users
+      type: object 
+      properties:
+        g_id: { $ref: "#/components/schemas/Identificator"}
+        g_name: { $ref: "#/components/schemas/GroupName"}
+        g_photo: { $ref: "#/components/schemas/PhotoOrGif"}
+        users: { $ref: "#/components/schemas/ProfilesList"}
+      required:
+        - g_name
+        - g_id
+        - users 
     Message:
       description: user's message in a convo/group
       type: object
@@ -549,8 +588,10 @@ components:
         content:
           oneOf:
             - $ref: "#/components/schemas/Text"
-            - $ref: "#/components/schemas/Photo"
-            - $ref: "#/components/schemas/Gif"
+            - $ref: "#/components/schemas/PhotoOrGif"
+      required: 
+        - msg_id
+        - timestamp 
     Comment:
       description: user's comment on a given message
       type: object
@@ -583,15 +624,6 @@ components:
       example: "2020-12-31T23:59:59"
       minLength: 19
       maxLength: 19
-    Gif:
-      description: gif file
-      type: object
-      properties:
-        gif:
-          type: string
-          format: byte
-          minLength: 0
-          maxLength: 9999
     Ok:
       title: OK
       description: The succesfull response from server.
@@ -605,7 +637,7 @@ components:
       scheme: bearer
   responses:
     #400
-    badRequest:
+    BadRequest:
       description: The request was not compliant with the documentation (eg. missing fields, etc).
       content:
         text/plain:
@@ -617,7 +649,7 @@ components:
             maxLength: 30
 
     #401
-    unauthorized:
+    Unauthorized:
       description: The access token is missing or it's expired.
       content:
         text/plain:
@@ -629,7 +661,7 @@ components:
             maxLength: 30
 
     #403
-    forbidden:
+    Forbidden:
       description: The user is not allowed to perform the action.
       content:
         text/plain:
