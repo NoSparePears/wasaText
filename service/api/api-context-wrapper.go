@@ -1,7 +1,7 @@
 package api
 
 import (
-	"wasa-text/service/api/reqcontext"
+	"wasaText/service/api/reqcontext"
 	"github.com/gofrs/uuid"
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"

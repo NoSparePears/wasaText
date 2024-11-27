@@ -36,12 +36,58 @@ import (
 	"fmt"
 )
 
+var ErrUserDoesNotExist = errors.New("user does not exists")
+
 // AppDatabase is the high level interface for the DB
 type AppDatabase interface {
-	GetName() (string, error)
-	SetName(name string) error
 
-	Ping() error
+  //SetName allows to set/change username 
+	SetName(name string) error
+  
+  //It returns an array of conversations 
+  ListConversations() ([]Conversation, error)
+
+  //creates a new conversation in the database, given an user, it returns that conversation    
+  CreateConversation(id_rec uint64) (Conversation, error) 
+	
+  //It returns a specific conversation 
+  GetConversation(id_rec uint64) (Conversation, error)
+    
+  //It deletes a specific conversation
+  DeleteConversation(id uint64) ([]Conversation, error)
+
+  //It sends a Message
+  SendMessage(id uint64, body string) (Message, error)
+  
+  //It deletes a Message
+  DeleteMessage(id uint64) (Conversation, error)
+
+  //It comments a Message
+  CommentMessage(msg_id uint64, emoji string) (Message, error)
+
+  //It forwards a massage to a conversation
+  ForwardMessage(msg_id uint64, convo_id uint64) (Conversation, error)
+
+  //It deletes a comment 
+  DeleteComment(comm_id uint64) error
+  
+  //It creates a group
+  CreateGroup(name string, user_list []User) (Group, error)
+
+  //It changes the group's name 
+  SetGroupName(g_id intui64, name string) (Group, error)
+
+  //It changes the group's Photo
+  SetGroupPhoto(g_id intui64, photo string) (Group, error)
+
+  //User leaves group
+  LeaveGroup(g_id intui64) ([]Conversation, error)
+  
+  //User adds another user to a group
+  AddToGroup(g_id intui64, user_id intui64) (Group, error)
+
+
+  Ping() error
 }
 
 type appdbimpl struct {

@@ -38,7 +38,7 @@ package api
 
 import (
 	"errors"
-	"wasa-text/service/database"
+	"wasaText/service/database"
 	"github.com/julienschmidt/httprouter"
 	"github.com/sirupsen/logrus"
 	"net/http"
