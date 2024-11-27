@@ -3,23 +3,28 @@ package database
 import "time"
 
 type User struct {
-  ID uint64
+  ID int
   Username string 
 }
 
 type Conversation struct {
-  ID uint64
+  ID int
+  SendID int 
+  RecID int
   Messages []Message
+  DelBySend bool
 }
 
 type Message struct {
-  ID uint64
+  ID int
+  ConvoID int
   sent timestamp
   text string
 }
 
 type Group struct {
-  ID uint64
-  Participants []User
+  ID int 
+  Members []User
+  Name string
   Photo string 
 }

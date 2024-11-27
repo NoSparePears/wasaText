@@ -1,0 +1,66 @@
+package database
+
+var sql_USERTABLE = `CREATE TABLE IF NOT EXISTS User(
+  userID INTEGER NOT NULL UNIQUE,
+  username TEXT NOT NULL UNIQUE,
+  PRIMARY KEY(userID)
+  );`
+
+var sql_CONVOTABLE = `CREATE TABLE IF NOT EXISTS Conversation (
+  convoID INTEGER NOT NULL UNIQUE, 
+  sendID INTEGER NOT NULL,
+  recID INTEGER NOT NULL,
+  delBySend BOOLEAN DEFAULT FALSE,
+  PRIMARY KEY (convoID),
+  CONSTRAINT fk_convo
+    FOREIGN KEY (sendID) REFERENCES User(userID),
+    FOREIGN KEY (recID) REFERENCES User(userID)
+  );`
+
+var sql_MSGTABLE = `CREATE TABLE IF NOT EXISTS Message (
+  msgID INTEGER NOT NULL UNIQUE,
+  convoID NOT NULL,
+  groupID NOT NULL,
+  sendID NOT NULL,
+  content TEXT NOT NULL,
+  timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (msgID),
+  CONSTRAINT fk_msg
+    FOREIGN KEY (sendID) REFERENCES User(userID),
+    FOREIGN KEY (convoID) REFERENCES Conversation(convoID)
+      ON DELETE CASCADE,
+    FOREIGN KEY (groupID) REFERENCES Group(groupID)
+    CHECK (convoID IS NOT NULL OR groupID IS NOT NULL),
+    CHECK (NOT (convoID IS NOT NULL AND groupID IS NOT NULL))    
+);`   
+
+var sql_COMMTABLE = `CREATE TABLE IF NOT EXISTS Comment (
+  commID INTEGER NOT NULL UNIQUE,
+  msgID NOT NULL,
+  sendID NOT NULL,
+  emoji TEXT NOT NULL,
+  PRIMARY KEY (commID),
+  CONSTRAINT fk_comm
+    FOREIGN KEY (msgID) REFERENCES Message(msgID)
+      ON DELETE CASCADE,
+    FOREIGN KEY (sendID) REFERENCES User(userID)    
+  );`
+
+var sql_GROUPTABLE = `CREATE TABLE IF NOT EXISTS Group (
+  groupID INTEGER NOT NULL UNIQUE,
+  ownerID INTEGER NOT NULL,
+  name TEXT NOT NULL,
+  PRIMARY KEY (groupID),
+  CONSTRAINT fk_group_owner
+    FOREIGN KEY (ownerID) REFERENCES User(userID),
+  );`
+
+var sql_MEMBERTABLE = `CREATE TABLE IF NOT EXISTS GroupMember (
+  groupID INTEGER NOT NULL,
+  memberID INTEGER NOT NULL,
+  PRIMARY KEY (groupID, memberID),
+  CONSTRAINT fk_group_member
+    FOREIGN KEY (groupID) REFERENCES Group(groupID)
+      ON DELETE CASCADE,
+    FOREIGN KEY (memberID) REFERENCES User(userID)
+  );`
