@@ -42,52 +42,52 @@ var ErrUserDoesNotExist = errors.New("user does not exists")
 type AppDatabase interface {
 
   //SetName allows to set/change username 
-	ChangeUsername(user_id uint64, name string) error
+	ChangeUsername(user_id int, name string) error
   
   //Search user by username
   SearchUser(username string) (User, error)
 
   //It returns an array of conversations 
-  GetConversations(user_id uint64) ([]Conversation, error)
+  GetConversations(user_id int) ([]Conversation, error)
 
   //creates a new conversation in the database, given an user, it returns that conversation    
-  CreateConversation(user_id uint64, id_rec uint64) (Conversation, error) 
+  CreateConversation(user_id int, id_rec int) (Conversation, error) 
 	
   //It returns a specific conversation 
-  GetConversation(user_id uint64, id_rec uint64) (Conversation, error)
+  GetConversation(user_id int, id_rec int) (Conversation, error)
     
   //It deletes a specific conversation
-  DeleteConversation(user_id uint64, convo_id uint64) ([]Conversation, error)
+  DeleteConversation(user_id int, convo_id int) ([]Conversation, error)
 
   //It sends a Message
-  SendMessage(user_id uint64, convo_id uint64, body string) (Message, error)
+  SendMessage(user_id int, convo_id int, body string) (Message, error)
   
   //It deletes a Message
-  DeleteMessage(user_id uint64, id uint64) (Conversation, error)
+  DeleteMessage(user_id int, id int) (Conversation, error)
 
   //It comments a Message
-  CommentMessage(user_id uint64, convo_id uint64, msg_id uint64, emoji string) (Message, error)
+  CommentMessage(user_id int, convo_id int, msg_id int, emoji string) (Message, error)
 
   //It forwards a massage to a conversation
-  ForwardMessage(user_id uint64, msg_id uint64, convo_id uint64) (Conversation, error)
+  ForwardMessage(user_id int, msg_id int, convo_id int) (Conversation, error)
 
   //It deletes a comment 
-  DeleteComment(user_id uint64, convo_id uint64, msg_id uint64, comm_id uint64) error
+  DeleteComment(user_id int, convo_id int, msg_id int, comm_id int) error
   
   //It creates a group
-  CreateGroup(user_id uint64, name string, user_list []User) (Group, error)
+  CreateGroup(user_id int, name string, user_list []User) (Group, error)
 
   //It changes the group's name 
-  SetGroupName(user_id uint64, g_id intui64, name string) (Group, error)
+  SetGroupName(user_id int, g_id int, name string) (Group, error)
 
   //It changes the group's Photo
-  SetGroupPhoto(user_id uint64, g_id intui64, photo string) (Group, error)
+  SetGroupPhoto(user_id int, g_id int, photo string) (Group, error)
 
   //User leaves group
-  LeaveGroup(user_id uint64, g_id intui64) ([]Conversation, error)
+  LeaveGroup(user_id int, g_id int) ([]Conversation, error)
   
   //User adds another user to a group
-  AddToGroup(user_id intui64, g_id intui64, added_user_id intui64) (Group, error)
+  AddToGroup(user_id int, g_id int, added_user_id int) (Group, error)
 
 
   Ping() error
