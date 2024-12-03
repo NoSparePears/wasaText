@@ -7,10 +7,11 @@ type User struct {
   Username string 
 }
 
-type Conversation struct {
+type Conversation struct { 
   ID int
   SendID int 
   RecID int
+  GroupID int
   Messages []Message
   DelBySend bool
 }
@@ -18,7 +19,7 @@ type Conversation struct {
 type Message struct {
   ID int
   ConvoID int
-  sent timestamp
+  Timestamp time.Time 
   text string
 }
 

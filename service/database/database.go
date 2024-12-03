@@ -51,7 +51,7 @@ type AppDatabase interface {
   GetConversations(user_id int) ([]Conversation, error)
 
   //creates a new conversation in the database, given an user, it returns that conversation    
-  CreateConversation(user_id int, id_rec int) (Conversation, error) 
+  CreateConversation(user_id int, id_rec int, id_group int) (Conversation, error) 
 	
   //It returns a specific conversation 
   GetConversation(user_id int, id_rec int) (Conversation, error)
@@ -74,9 +74,6 @@ type AppDatabase interface {
   //It deletes a comment 
   DeleteComment(user_id int, convo_id int, msg_id int, comm_id int) error
   
-  //It creates a group
-  CreateGroup(user_id int, name string, user_list []User) (Group, error)
-
   //It changes the group's name 
   SetGroupName(user_id int, g_id int, name string) (Group, error)
 

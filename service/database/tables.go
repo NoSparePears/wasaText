@@ -7,31 +7,31 @@ var sql_USERTABLE = `CREATE TABLE IF NOT EXISTS User(
   );`
 
 var sql_CONVOTABLE = `CREATE TABLE IF NOT EXISTS Conversation (
-  convoID INTEGER NOT NULL UNIQUE, 
+  convoID INTEGER NOT NULL, 
   sendID INTEGER NOT NULL,
   recID INTEGER NOT NULL,
+  groupID INTEGER,
+  lastMsgId INTEGER,
   delBySend BOOLEAN DEFAULT FALSE,
-  PRIMARY KEY (convoID),
+  PRIMARY KEY (convoID, sendID),
   CONSTRAINT fk_convo
     FOREIGN KEY (sendID) REFERENCES User(userID),
     FOREIGN KEY (recID) REFERENCES User(userID)
+    FOREIGN KEY (groupID) REFERENCES Group(groupID)
+  UNIQUE (convoID, sendID, groupID)
   );`
 
 var sql_MSGTABLE = `CREATE TABLE IF NOT EXISTS Message (
   msgID INTEGER NOT NULL UNIQUE,
   convoID NOT NULL,
-  groupID NOT NULL,
   sendID NOT NULL,
   content TEXT NOT NULL,
   timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-  PRIMARY KEY (msgID),
+  PRIMARY KEY (msgID, convoID, sendID),
   CONSTRAINT fk_msg
     FOREIGN KEY (sendID) REFERENCES User(userID),
     FOREIGN KEY (convoID) REFERENCES Conversation(convoID)
-      ON DELETE CASCADE,
-    FOREIGN KEY (groupID) REFERENCES Group(groupID)
-    CHECK (convoID IS NOT NULL OR groupID IS NOT NULL),
-    CHECK (NOT (convoID IS NOT NULL AND groupID IS NOT NULL))    
+      ON DELETE CASCADE  
 );`   
 
 var sql_COMMTABLE = `CREATE TABLE IF NOT EXISTS Comment (
@@ -39,7 +39,7 @@ var sql_COMMTABLE = `CREATE TABLE IF NOT EXISTS Comment (
   msgID NOT NULL,
   sendID NOT NULL,
   emoji TEXT NOT NULL,
-  PRIMARY KEY (commID),
+  PRIMARY KEY (commID, msgID),
   CONSTRAINT fk_comm
     FOREIGN KEY (msgID) REFERENCES Message(msgID)
       ON DELETE CASCADE,
@@ -63,4 +63,5 @@ var sql_MEMBERTABLE = `CREATE TABLE IF NOT EXISTS GroupMember (
     FOREIGN KEY (groupID) REFERENCES Group(groupID)
       ON DELETE CASCADE,
     FOREIGN KEY (memberID) REFERENCES User(userID)
+      ON DELETE CASCADE
   );`
