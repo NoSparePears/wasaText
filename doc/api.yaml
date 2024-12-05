@@ -81,7 +81,7 @@ paths:
     put:
       tags: ["User"]
       summary: set username
-      operationId: setMyUsername
+      operationId: setMyUserName
       description: user can change his username if not already taken
       security:
         - bearerAuth: []
@@ -120,6 +120,7 @@ paths:
         content:
           multipart/form-data:
             schema:
+              description: photo to set as user's profile picture
               type: object
               properties:
                 photo: { $ref: "#/components/schemas/PhotoOrGif" }
@@ -433,6 +434,7 @@ paths:
         content:
           application/json:
             schema:
+              description: photo to set as group's picture
               type: object
               properties:
                 photo: { $ref: "#/components/schemas/PhotoOrGif" }
@@ -539,7 +541,7 @@ components:
     GroupName:
       description: name of group
       type: string
-      pattern: ^[a-z0-9]{3,13}$
+      pattern: ^[A-Za-zÀ-ÖØ-öø-ÿ0-9 ]{3,100}(/[A-Za-z])?$
       example: "Informatica Canale M/Z"
       minLength: 3 
       maxLength: 100
@@ -548,21 +550,22 @@ components:
       type: object
       properties:
         photo:
+          description: image or gif
           type: string
           format: byte
           minLength: 0
           maxLength: 9999
     Profile:
-      description: user profile
       type: object
       properties:
+        description: user profile
         user_id: { $ref: "#/components/schemas/Identificator" }
         username: { $ref: "#/components/schemas/Username" }
         photo: { $ref: "#/components/schemas/PhotoOrGif" }
     ProfilesList:
-      description: searched user's list
       type: object
       properties:
+        description: searched user's list
         profiles:
           type: array
           items:
@@ -572,9 +575,9 @@ components:
       required:
         - profiles 
     ConversationsList:
-      description: user's conversation list
       type: object
       properties:
+        description: user's conversation list       
         conversations:
           type: array
           items:
@@ -621,9 +624,9 @@ components:
         comm_id: { $ref: "#/components/schemas/Identificator" }
         emoji: { $ref: "#/components/schemas/Emoji" }
     Text:
-      description: text of the message
       type: object
       properties:
+        description: text of the message
         text:
           type: string
           example: "Hey, come stai?"
@@ -632,10 +635,13 @@ components:
           maxLength: 65536
     Emoji:
       type: object
-      description: a single emoji, represented by its Unicode character.
       properties:
+        description: a single emoji, represented by its Unicode character.
         emoji:
           type: string
+          pattern: "^[\u1F600-\u1F64F\u2700-\u27BF\u1F300-\u1F5FF\u1F680-\u1F6FF\u1F700-\u1F77F]$"
+          minLength: 1
+          maxLength: 1
           example: "😊"
     Timestamp:
       title: timestamp
