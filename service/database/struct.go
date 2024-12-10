@@ -3,29 +3,28 @@ package database
 import "time"
 
 type User struct {
-  ID int
-  Username string 
+	ID int						`json:"id"`
+	Username string 	`json:"username"`
 }
 
 type Conversation struct { 
-  ID int
-  SendID int 
-  RecID int
-  GroupID int
-  Messages []Message
-  DelBySend bool
+	ID int							`json:"id"`
+	SendID int 					`json:"sendID"`
+	RecID int						`json:"recID"`
+	GroupID int					`json:"groupID"`
+	LastMessageID int		`json:"last_msgID"`
+	DelBySend bool			`json:"del_by_send"`
 }
 
 type Message struct {
-  ID int
-  ConvoID int
-  Timestamp time.Time 
-  text string
+	ID int							`json:"id"`
+	ConvoID int					`json:"convoID"`
+	Timestamp time.Time	`json:"timestamp"`
+	Body string					`json:"body"`
 }
 
 type Group struct {
-  ID int 
-  Members []User
-  Name string
-  Photo string 
+	ID int 					`json:"id"`
+	Members []User	`json:"members"`
+	Name string			`json:"name"`
 }

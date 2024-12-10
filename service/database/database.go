@@ -40,7 +40,9 @@ var ErrUserDoesNotExist = errors.New("user does not exists")
 
 // AppDatabase is the high level interface for the DB
 type AppDatabase interface {
+  
 
+  CreateUser(u User) (User, error)
   //SetName allows to set/change username 
 	ChangeUsername(user_id int, name string) error
   
