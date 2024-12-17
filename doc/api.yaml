@@ -236,9 +236,7 @@ paths:
         content:
           application/json:
             schema:
-              anyOf:
-                - $ref: "#/components/schemas/Text"
-                - $ref: "#/components/schemas/PhotoOrGif"
+              - $ref: "#/components/schemas/Message"
       responses:
         "200":
           description: message sent succesfully
@@ -311,7 +309,7 @@ paths:
         content:
           application/json:
             schema:
-              $ref: "#/components/schemas/Emoji"
+              $ref: "#/components/schemas/Comment"
         required: true
       responses:
         "200":
