@@ -31,8 +31,6 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		BadRequest(w, err, ctx, "Invalid destID")
 		return
 	}
-	//check convo in db
-	convo, err := rt.db.GetConversation(sendID, recID)
 
 	var msg structs.Message
 	//read request body
@@ -47,7 +45,6 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
-	msg.ConvoID = convo.GlobalConvoID
 	msg.SenderID = sendID
 	//insert message inside db
 	dbMsg, err := rt.db.InsertMessage(msg, recID)

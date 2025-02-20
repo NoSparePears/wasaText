@@ -8,6 +8,7 @@ import (
 var (
 	query_INSERT_MESSAGE  = `INSERT INTO Message (globalConvoID, senderID, content) VALUES (?, ?, ?);`
 	query_UPDATE_LAST_MSG = `UPDATE Conversation SET lastMsgId = ? WHERE userID = ? AND globalConvoID = ?;`
+	query_GET_TIMESTAMP   = `SELECT timestamp FROM Message WHERE msgID = ?;`
 )
 
 // SendMessage inserisce un messaggio in una conversazione e aggiorna lo stato della chat.
@@ -23,7 +24,13 @@ func (db *appdbimpl) InsertMessage(msg structs.Message, recID int) (structs.Mess
 	if err != nil {
 		return structs.Message{}, errors.New("failed to retrieve message ID")
 	}
-
+	// Recupera il timestamp dal database
+	var timestamp string
+	err = db.c.QueryRow(query_GET_TIMESTAMP, msgID).Scan(&timestamp)
+	if err != nil {
+		return structs.Message{}, errors.New("failed to retrieve message timestamp")
+	}
+	msg.Timestamp = timestamp // Assegna il timestamp al messaggio
 	// Aggiorna il lastMsgId per il mittente
 	_, err = db.c.Exec(query_UPDATE_LAST_MSG, msgID, msg.SenderID, msg.ConvoID)
 	if err != nil {
@@ -35,6 +42,6 @@ func (db *appdbimpl) InsertMessage(msg structs.Message, recID int) (structs.Mess
 	if err != nil {
 		return structs.Message{}, errors.New("failed to create conversation for receiver")
 	}
-	msg.ConvoID = int(msgID)
+
 	return msg, nil
 }
