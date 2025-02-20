@@ -269,11 +269,19 @@ paths:
         "403": { $ref: "#/components/responses/Forbidden" }
         "500": { $ref: "#/components/responses/InternalServerError" }
     post:
-      parameters:
-        - name: convo_id
-          in: query
-          required: true
-          schema: {$ref: "#/components/schemas/Identificator"}
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                targetConvoID:
+                  type: integer
+                  description: ID della conversazione con cui `userID` vuole condividere il messaggio inoltrato
+                customContent:
+                  type: string
+                  description: (Opzionale) Testo aggiuntivo che l’utente può scrivere accanto al messaggio inoltrato
       tags: ["Conversation"]
       summary: forward message
       description: send existing message in the selected conversation
