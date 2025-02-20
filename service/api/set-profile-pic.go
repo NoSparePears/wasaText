@@ -7,21 +7,21 @@ import (
 	"os"
 	"strconv"
 
-	"wasaText/service/api/utils"
 	"wasaText/service/api/reqcontext"
-	
+	"wasaText/service/api/utils"
+
 	"github.com/julienschmidt/httprouter"
 )
 
-func (rt *_router) setMyProfilePic(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext)  {
-	
+func (rt *_router) setMyProfilePic(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
+
 	profileUserID, err := strconv.Atoi(ps.ByName("profileUserID"))
 	if err != nil {
 		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	userID := ctx.ID 
+	userID := ctx.UserId
 	if profileUserID != userID {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return
@@ -33,7 +33,7 @@ func (rt *_router) setMyProfilePic(w http.ResponseWriter, r *http.Request, ps ht
 		http.Error(w, "Bad Request "+err.Error(), http.StatusBadRequest)
 		return
 	}
-	
+
 	// Access the photo key
 	// The photo key is the name of the file input in the HTML form
 	// If the key is not present an error is returned

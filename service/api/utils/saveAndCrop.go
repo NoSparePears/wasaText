@@ -7,21 +7,22 @@ import (
 	"github.com/nfnt/resize"
 )
 
+// Function used to save and crop an image
 func SaveAndCrop(filename string, w uint, h uint) error {
-	file, err := os.Open(filename)
+	file, err := os.Open(filename) // Opena the image file
 	if err != nil {
 		return err
 	}
 	defer func() { err = file.Close() }()
 
-	// Decodifica l'immagine in un oggetto image.Image
+	// Decode the image
 	img, err := jpeg.Decode(file)
 	if err != nil {
 		return err
 	}
 
 	resizedImg := resize.Resize(w, h, img, resize.NearestNeighbor)
-	// Salva l'immagine croppata su disco
+	// Save cropped image
 	out, err := os.Create(filename)
 	if err != nil {
 		return err

@@ -1,27 +1,33 @@
 package database
 
-var query_GETCONVERSATION = `SELECT convoID FROM Conversation WHERE (sendID = ? AND recID = ?)`
+import (
+	"errors"
+	"wasaText/service/structs"
+)
 
-func (db *appdbimpl) GetConversation(user_id int, id_rec int) (Conversation, error) {
-  rows, err := db.c.Query(query_GETCONVERSATION, user_id, id_rec)
-  
-  if err != nil {
-    return Conversation{}, err
-  }
-  defer func() { err = rows.Close() }()
-  
-  var convo Conversation
+var query_GETCONVERSATIONID = `SELECT c1.globalConvoID
+FROM Conversation c1
+JOIN Conversation c2 ON c1.globalConvoID = c2.globalConvoID
+WHERE c1.userID = ? AND c2.userID = ?;`
 
-  if rows.Next() {
-    if rows.Err() != nil {
-      return Conversation{},err
-    }
+func (db *appdbimpl) GetConversation(userID int, recID int) (structs.Conversation, error) {
+	//execute  query and find conversation
+	rows, err := db.c.Query(query_GETCONVERSATIONID, userID, recID)
+	if err != nil {
+		return structs.Conversation{}, errors.New("internal server error")
+	}
+	defer rows.Close()
 
-    err = rows.Scan(&convo.ID)
-    if err != nil {
-      return Conversation{}, err
-    }
-    
-  }
-  return convo, nil
+	var convo structs.Conversation
+	//check if query returned a result
+	if rows.Next() {
+		if err := rows.Scan(&convo.GlobalConvoID); err != nil {
+			return structs.Conversation{}, errors.New(("failed to retrieve conversation"))
+		}
+		return convo, nil //success
+	}
+
+	//no conversation found, so create one
+	return db.CreateConversation(userID, recID)
+
 }

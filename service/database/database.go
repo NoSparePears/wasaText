@@ -34,62 +34,60 @@ import (
 	"database/sql"
 	"errors"
 	"fmt"
+	"wasaText/service/structs"
 )
 
 var ErrUserDoesNotExist = errors.New("user does not exists")
 
 // AppDatabase is the high level interface for the DB
 type AppDatabase interface {
-  
-
-  CreateUser(u User) (User, error)
-  //SetName allows to set/change username 
+	CreateUser(username string) (structs.User, error)
+	//SetName allows to set/change username
 	ChangeUsername(user_id int, name string) error
-  
-  //Search user by username
-  SearchUser(username string) (User, error)
 
-  //It returns an array of conversations 
-  GetConversations(user_id int) ([]Conversation, error)
+	//Search user by username
+	SearchUser(username string) (structs.User, error)
 
-  //creates a new conversation in the database, given an user, it returns that conversation    
-  CreateConversation(user_id int, id_rec int, id_group int) (Conversation, error) 
-	
-  //It returns a specific conversation 
-  GetConversation(user_id int, id_rec int) (Conversation, error)
-    
-  //It deletes a specific conversation
-  DeleteConversation(user_id int, convo_id int) ([]Conversation, error)
+	//It returns an array of conversations
+	GetConversations(user_id int) ([]structs.Conversation, error)
 
-  //It sends a Message
-  SendMessage(user_id int, convo_id int, body string) (Message, error)
-  
-  //It deletes a Message
-  DeleteMessage(user_id int, id int) (Conversation, error)
+	//creates a new conversation in the database, given an user, it returns that conversation
+	CreateConversation(user_id int, rec_id int) (structs.Conversation, error)
 
-  //It comments a Message
-  CommentMessage(user_id int, convo_id int, msg_id int, emoji string) (Message, error)
+	//It returns a specific conversation
+	GetConversation(user_id int, id_rec int) (structs.Conversation, error)
 
-  //It forwards a massage to a conversation
-  ForwardMessage(user_id int, msg_id int, convo_id int) (Conversation, error)
+	//It deletes a specific conversation
+	DeleteConversation(user_id int, convo_id int) ([]structs.Conversation, error)
 
-  //It deletes a comment 
-  DeleteComment(user_id int, convo_id int, msg_id int, comm_id int) error
-  
-  //It changes the group's name 
-  SetGroupName(user_id int, g_id int, name string) (Group, error)
+	//It sends a Message
+	InsertMessage(msg structs.Message, recID int) (structs.Message, error)
 
-  //It changes the group's Photo
-  SetGroupPhoto(user_id int, g_id int, photo string) (Group, error)
+	//It deletes a Message
+	DeleteMessage(user_id int, id int) (structs.Conversation, error)
 
-  //User leaves group
-  LeaveGroup(user_id int, g_id int) ([]Conversation, error)
-  
-  //User adds another user to a group
-  AddToGroup(user_id int, g_id int, added_user_id int) (Group, error)
+	//It comments a Message
+	CommentMessage(user_id int, convo_id int, msg_id int, emoji string) (structs.Message, error)
 
+	//It forwards a massage to a conversation
+	ForwardMessage(user_id int, msg_id int, convo_id int) (structs.Conversation, error)
 
-  Ping() error
+	//It deletes a comment
+	DeleteComment(user_id int, convo_id int, msg_id int, comm_id int) error
+
+	//It changes the group's name
+	SetGroupName(user_id int, g_id int, name string) (structs.Group, error)
+
+	//It changes the group's Photo
+	SetGroupPhoto(user_id int, g_id int, photo string) (structs.Group, error)
+
+	//User leaves group
+	LeaveGroup(user_id int, g_id int) ([]structs.Conversation, error)
+
+	//User adds another user to a group
+	AddToGroup(user_id int, g_id int, added_user_id int) (structs.Group, error)
+
+	Ping() error
 }
 
 type appdbimpl struct {

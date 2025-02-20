@@ -1,65 +1,47 @@
 package api
 
 import (
-  "encoding/json"
-  "net/http"
-  "github.com/julienschmidt/httprouter"
-  "wasaText/service/api/reqcontext"
+	"database/sql"
+	"encoding/json"
+	"errors"
+	"net/http"
+	"wasaText/service/api/reqcontext"
+	"wasaText/service/structs"
+
+	"github.com/julienschmidt/httprouter"
 )
 
-func (rt *_router) CreateUser(u User) (User, error) {
-  //create user in the db
-  dbUser, err := rt.db.CreateUser(u.ConvertUserfromDB())
-  if err != nil {
-    return u,err
-  }
+func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
+	var user structs.User
 
-  //convert user from db to api's user 
-  err = u.ConvertUserfromDB(dbUser)
-  if err != nil {
-    return u, err
-  }
+	//read request body
+	err := json.NewDecoder(r.Body).Decode(&user)
+	if err != nil {
+		BadRequest(w, err, ctx, "Error decoding JSON")
+		return
+	}
+	//check username
+	dbUser, err := rt.db.SearchUser(user.Username)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) && user.IsValid() {
+			//create user if it doesn't exists
+			dbUser, err = rt.db.CreateUser(user.Username)
+			if err != nil {
+				InternalServerError(w, err, ctx)
+				return
+			}
+			w.WriteHeader(http.StatusCreated)
+		} else {
+			InternalServerError(w, err, ctx)
+			return
+		}
 
-  return u, nil 
-}
+	}
+	//Response
+	w.Header().Set("content-type", "application/json")
+	if err := json.NewEncoder(w).Encode(dbUser.ID); err != nil {
+		InternalServerError(w, err, ctx)
+		return
+	}
 
-func (rt *_router) doLogin (w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
-  var user User
-  
-  //read request body
-  err := json.NewDecoder(r.Body).Decode(&user)
-  if err != nil {
-    BadRequest(w, err, ctx, "Invalid username")
-    return 
-  }
-  //check username 
-  exists, err := rt.db.CheckIfExists(user.Username)
-  if err != nil {
-    InternalServerError(e, err, ctx)
-    return 
-  }
-  if !exists {
-    _, err := rt.CreateUser(user)
-    if err != nil {
-      InternalServerError(w, err, ctx)
-      return 
-    }
-    w.WriteHeader(http.StatusCreated)
-    
-  } else {
-    //it exists, so search it in the db 
-    dbUser, err := rt.db.GetUserByName(user.Username)
-    if err != nil {
-      InternalServerError(w, err, ctx)
-      return 
-    }
-    w.WriteHeader(http.StatusOK)
-  }
-
-  //Response 
-  w.Header().Set("content-type", "application/json")
-  if err := json.NewEncoder(w).Encode(user.ID); err != nil {
-    InternalServerError(w, err, ctx)
-    return 
-  }
 }

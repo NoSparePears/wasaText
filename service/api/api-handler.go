@@ -10,9 +10,9 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.GET("/liveness", rt.liveness)
 
 	rt.router.POST("/session", rt.wrap(rt.doLogin, false))
-	
+
 	rt.router.GET("/profiles", rt.wrap(rt.searchUser, true))
-	
+
 	rt.router.PUT("/profiles/:userID/username", rt.wrap(rt.setMyUserName, true))
 
 	rt.router.PUT("/profiles/:userID/photo", rt.wrap(rt.setMyPhoto, true))
@@ -30,8 +30,8 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.DELETE("/profiles/:userID/conversations/:destID/messages/:msgID", rt.wrap(rt.deleteMessage, true))
 
 	rt.router.POST("/profiles/:userID/conversations/:destID/messages/:msgID", rt.wrap(rt.forwardMessage, true))
-	
-	rt.router.PUT("/profiles/:userID/conversations/:destID/messages/:msgID/comments", rt.wrap(rt.commentMessage, true)) 
+
+	rt.router.PUT("/profiles/:userID/conversations/:destID/messages/:msgID/comments", rt.wrap(rt.commentMessage, true))
 
 	rt.router.DELETE("/profiles/:userID/conversations/:destID/messages/:msgID/comments/:commID", rt.wrap(rt.uncommmentMessage, true))
 
