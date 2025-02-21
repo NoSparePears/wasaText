@@ -42,10 +42,12 @@ var ErrUserDoesNotExist = errors.New("user does not exists")
 // AppDatabase is the high level interface for the DB
 type AppDatabase interface {
 	CreateUser(username string) (structs.User, error)
-	//SetName allows to set/change username
+
+	//ChangeUsername allows to set/change username
 	ChangeUsername(user_id int, name string) error
 
 	//Search user by username
+
 	SearchUser(username string) (structs.User, error)
 
 	//It returns an array of conversations
@@ -64,13 +66,13 @@ type AppDatabase interface {
 	InsertMessage(msg structs.Message, recID int) (structs.Message, error)
 
 	//It deletes a Message
-	DeleteMessage(user_id int, id int) (structs.Conversation, error)
+	DeleteMessage(msgID int, convoID int, senderID int) (structs.Conversation, error)
 
 	//It comments a Message
-	CommentMessage(user_id int, convo_id int, msg_id int, emoji string) (structs.Message, error)
+	InsertComment(comment structs.Comment) (structs.Message, error)
 
 	//It forwards a massage to a conversation
-	ForwardMessage(user_id int, msg_id int, convo_id int) (structs.Conversation, error)
+	ComposeMsgToForward(msgID int, convoID int, customContent string) (structs.Message, error)
 
 	//It deletes a comment
 	DeleteComment(user_id int, convo_id int, msg_id int, comm_id int) error
