@@ -69,25 +69,25 @@ type AppDatabase interface {
 	DeleteMessage(msgID int, convoID int, senderID int) (structs.Conversation, error)
 
 	//It comments a Message
-	InsertComment(comment structs.Comment) (structs.Message, error)
+	InsertComment(comment structs.Comment) (structs.Comment, error)
 
 	//It forwards a massage to a conversation
 	ComposeMsgToForward(msgID int, convoID int, customContent string) (structs.Message, error)
 
 	//It deletes a comment
-	DeleteComment(user_id int, convo_id int, msg_id int, comm_id int) error
+	DeleteComment(user_id int, msg_id int, comm_id int) error
 
 	//It changes the group's name
-	SetGroupName(user_id int, g_id int, name string) (structs.Group, error)
+	//SetGroupName(user_id int, g_id int, name string) (structs.Group, error)
 
 	//It changes the group's Photo
-	SetGroupPhoto(user_id int, g_id int, photo string) (structs.Group, error)
+	//SetGroupPhoto(user_id int, g_id int, photo string) (structs.Group, error)
 
 	//User leaves group
-	LeaveGroup(user_id int, g_id int) ([]structs.Conversation, error)
+	//LeaveGroup(user_id int, g_id int) ([]structs.Conversation, error)
 
 	//User adds another user to a group
-	AddToGroup(user_id int, g_id int, added_user_id int) (structs.Group, error)
+	//AddToGroup(user_id int, g_id int, added_user_id int) (structs.Group, error)
 
 	Ping() error
 }
