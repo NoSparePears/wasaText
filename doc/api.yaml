@@ -533,7 +533,7 @@ components:
       description: name of user
       type: string
       pattern: ^[a-z0-9]{3,13}$
-      example: "haru22"
+      example: "octopus24"
       minLength: 3
       maxLength: 13
     NewUserId:
@@ -644,10 +644,10 @@ components:
       properties:
         emoji:
           type: string
-          pattern: "^[\u1F600-\u1F64F\u2700-\u27BF\u1F300-\u1F5FF\u1F680-\u1F6FF\u1F700-\u1F77F]$"
+          pattern: "^.*?$"
           minLength: 1
           maxLength: 1
-          example: "😊"
+          example: "🐱"
     Timestamp:
       title: timestamp
       description: the timestamp of the message
