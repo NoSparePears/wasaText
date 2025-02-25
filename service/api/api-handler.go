@@ -41,7 +41,7 @@ func (rt *_router) Handler() http.Handler {
 
 	rt.router.GET("/profiles/:userID/groups/:groupID/members", rt.wrap(rt.GetGroupMembers, true))
 
-	//rt.router.DELETE("/profiles/:userID/groups/:groupID", rt.wrap(rt.leaveGroup, true))
+	rt.router.DELETE("/profiles/:userID/groups/:groupID", rt.wrap(rt.leaveGroup, true))
 
 	rt.router.PUT("/profiles/:userID/groups/:groupID/g_name", rt.wrap(rt.setGroupName, true))
 
