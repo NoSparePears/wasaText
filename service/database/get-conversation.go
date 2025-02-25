@@ -24,6 +24,10 @@ func (db *appdbimpl) GetConversation(userID int, recID int) (structs.Conversatio
 		if err := rows.Scan(&convo.GlobalConvoID); err != nil {
 			return structs.Conversation{}, errors.New(("failed to retrieve conversation"))
 		}
+		if rows.Err() != nil {
+			return structs.Conversation{}, errors.New("internal server error")
+		}
+
 		return convo, nil //success
 	}
 
