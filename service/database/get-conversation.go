@@ -28,6 +28,11 @@ func (db *appdbimpl) GetConversation(userID int, recID int) (structs.Conversatio
 			return structs.Conversation{}, errors.New("internal server error")
 		}
 
+		err = db.AddReadCheck(convo.GlobalConvoID)
+		if err != nil {
+			return structs.Conversation{}, errors.New("failed to create read checkmark")
+		}
+
 		return convo, nil //success
 	}
 
