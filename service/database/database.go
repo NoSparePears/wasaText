@@ -77,6 +77,15 @@ type AppDatabase interface {
 	//It deletes a comment
 	DeleteComment(user_id int, msg_id int, comm_id int) error
 
+	//It creates a group
+	CreateGroup(groupName string, userID int) (structs.Group, error)
+
+	//It adds another user to a group
+	AddToGroup(user_id int, g_id int) error
+
+	//It returns a list for all the members in a group
+	GetGroupMembers(groupID int) ([]structs.User, error)
+
 	//It changes the group's name
 	//SetGroupName(user_id int, g_id int, name string) (structs.Group, error)
 
@@ -85,9 +94,6 @@ type AppDatabase interface {
 
 	//User leaves group
 	//LeaveGroup(user_id int, g_id int) ([]structs.Conversation, error)
-
-	//User adds another user to a group
-	//AddToGroup(user_id int, g_id int, added_user_id int) (structs.Group, error)
 
 	Ping() error
 }
@@ -99,6 +105,7 @@ type appdbimpl struct {
 // New returns a new instance of AppDatabase based on the SQLite connection `db`.
 // `db` is required - an error will be returned if `db` is `nil`.
 func New(db *sql.DB) (AppDatabase, error) {
+	//check if the database is nil (required)
 	if db == nil {
 		return nil, errors.New("database is required when building a AppDatabase")
 	}

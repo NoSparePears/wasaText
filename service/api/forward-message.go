@@ -60,6 +60,10 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 	msgToForward.SenderID = userID
 
 	finalMsg, err := rt.db.InsertMessage(msgToForward, convo.GlobalConvoID)
+	if err != nil {
+		InternalServerError(w, err, ctx)
+		return
+	}
 
 	// Risposta JSON con il nuovo messaggio inoltrato
 	w.Header().Set("Content-Type", "application/json")

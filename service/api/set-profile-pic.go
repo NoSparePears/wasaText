@@ -13,17 +13,17 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func (rt *_router) setMyProfilePic(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
+// rt.router.PUT("/profiles/:userID/photo", rt.wrap(rt.setMyPhoto, true))
+func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
-	profileUserID, err := strconv.Atoi(ps.ByName("profileUserID"))
+	userID, err := strconv.Atoi(ps.ByName("userID"))
 	if err != nil {
 		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	userID := ctx.UserId
-	if profileUserID != userID {
-		http.Error(w, "Forbidden", http.StatusForbidden)
+	if userID != ctx.UserId {
+		Forbidden(w, err, ctx, "Unauthorized")
 		return
 	}
 

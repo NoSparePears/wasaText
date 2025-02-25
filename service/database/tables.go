@@ -28,23 +28,10 @@ var sql_CONVOTABLE = `CREATE TABLE IF NOT EXISTS Conversation (
   UNIQUE (userID, globalConvoID)
   );`
 
-var sql_GROUPTABLE = `CREATE TABLE IF NOT EXISTS Group (
-  groupName TEXT NOT NULL
-  userGroupID INTEGER PRIMARY KEY AUTOINCREMENT,
-  userID INTEGER NOT NULL,
-  globalConvoID INTEGER NOT NULL,
-  lastMsgId INTEGER,
-  visible BOOLEAN DEFAULT TRUE,
-
-  CONSTRAINT fk_user FOREIGN KEY (userID) REFERENCES User(userID),
-  CONSTRAINT fk_global FOREIGN KEY (globalConvoID) REFERENCES GlobalConversation(globalConvoID),
-  
-  UNIQUE (userID, globalConvoID)
-  )`
-
 var sql_GROUPMEMBERTABLE = `CREATE TABLE IF NOT EXISTS GroupMember (
   groupID INTEGER NOT NULL,
-  userID INTEGER NOT NULL.
+  userID INTEGER NOT NULL,
+  role TEXT DEFAULT 'member',
 
   CONSTRAINT fk_group FOREIGN KEY (groupID) REFERENCES Group(globalConvoID),
   CONSTRAINT fk_user FOREIGN KEY (userID) REFERENCES User(userID),
