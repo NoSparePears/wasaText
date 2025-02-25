@@ -31,6 +31,7 @@ Then you can initialize the AppDatabase and pass it to the api package.
 package database
 
 import (
+	"context"
 	"database/sql"
 	"errors"
 	"fmt"
@@ -96,7 +97,8 @@ type AppDatabase interface {
 }
 
 type appdbimpl struct {
-	c *sql.DB
+	c   *sql.DB
+	ctx context.Context
 }
 
 // New returns a new instance of AppDatabase based on the SQLite connection `db`.
@@ -108,18 +110,57 @@ func New(db *sql.DB) (AppDatabase, error) {
 	}
 
 	// Check if table exists. If not, the database is empty, and we need to create the structure
-	var tableName string
-	err := db.QueryRow(`SELECT name FROM sqlite_master WHERE type='table' AND name='example_table';`).Scan(&tableName)
+	var tableCount uint8
+	err := db.QueryRow(`SELECT COUNT(name) FROM sqlite_master WHERE type='table';`).Scan(&tableCount)
 	if errors.Is(err, sql.ErrNoRows) {
-		sqlStmt := `CREATE TABLE example_table (id INTEGER NOT NULL PRIMARY KEY, name TEXT);`
-		_, err = db.Exec(sqlStmt)
 		if err != nil {
-			return nil, fmt.Errorf("error creating database structure: %w", err)
+			return nil, fmt.Errorf("error checking if database is empty: %w", err)
 		}
 	}
 
+	// The tables are six in total, so if the count is less than 6, we need to create them.
+	if tableCount != 6 {
+
+		// ---CREATE USER TABLE----//
+		_, err = db.Exec(sql_USERTABLE)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure user: %w", err)
+		}
+
+		// ---CREATE GLOBAL CONVO TABLE----//
+		_, err = db.Exec(sql_GLOBALCONVOTABLE)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure global conversation: %w", err)
+		}
+
+		// ---CREATE CONVO TABLE----//
+		_, err = db.Exec(sql_CONVOTABLE)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure conversation: %w", err)
+		}
+
+		// ---CREATE GROUP MEMBER TABLE----//
+		_, err = db.Exec(sql_GROUPMEMBERTABLE)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure group member: %w", err)
+		}
+
+		// ---CREATE MESSAGE TABLE----//
+		_, err = db.Exec(sql_MSGTABLE)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure message: %w", err)
+		}
+
+		// ---CREATE COMMENT TABLE----//
+		_, err = db.Exec(sql_COMMTABLE)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure comment: %w", err)
+		}
+
+	}
 	return &appdbimpl{
-		c: db,
+		c:   db,
+		ctx: context.Background(),
 	}, nil
 }
 
