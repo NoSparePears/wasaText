@@ -18,7 +18,14 @@ func (db *appdbimpl) InsertMessage(msg structs.Message, recID int) (structs.Mess
 	if err != nil {
 		return structs.Message{}, errors.New("failed to insert message")
 	}
-
+	// Controlla se il messaggio è stato aggiunto
+	rowsAffected, err := result.RowsAffected()
+	if err != nil {
+		return structs.Message{}, errors.New("failed to retrieve deletion status")
+	}
+	if rowsAffected == 0 {
+		return structs.Message{}, errors.New("message not found or unauthorized action")
+	}
 	// Ottiene l'ID del messaggio appena creato
 	msgID, err := result.LastInsertId()
 	if err != nil {
@@ -43,5 +50,9 @@ func (db *appdbimpl) InsertMessage(msg structs.Message, recID int) (structs.Mess
 		return structs.Message{}, errors.New("failed to create conversation for receiver")
 	}
 
+	err = db.AddSentCheck(msg.MsgID)
+	if err != nil {
+		return structs.Message{}, errors.New("failed to create sent checkmark")
+	}
 	return msg, nil
 }

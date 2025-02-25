@@ -93,6 +93,9 @@ type AppDatabase interface {
 	//User leaves group
 	LeaveGroup(userID int, groupID int) error
 
+	//It adds checkmark for a sent message, and its timestamp
+	AddSentCheck(msgID int) error
+
 	Ping() error
 }
 
@@ -119,7 +122,7 @@ func New(db *sql.DB) (AppDatabase, error) {
 	}
 
 	// The tables are six in total, so if the count is less than 6, we need to create them.
-	if tableCount != 6 {
+	if tableCount != 7 {
 
 		// ---CREATE USER TABLE----//
 		_, err = db.Exec(sql_USERTABLE)
@@ -155,6 +158,12 @@ func New(db *sql.DB) (AppDatabase, error) {
 		_, err = db.Exec(sql_COMMTABLE)
 		if err != nil {
 			return nil, fmt.Errorf("error creating database structure comment: %w", err)
+		}
+
+		// ---CREATE CHECKMARKS TABLE----//
+		_, err = db.Exec(sql_CHECKMARKSTABLE)
+		if err != nil {
+			return nil, fmt.Errorf("error creating database structure checkmarks: %w", err)
 		}
 
 	}
