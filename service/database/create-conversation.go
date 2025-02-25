@@ -5,10 +5,9 @@ import (
 )
 
 func (db *appdbimpl) CreateConversation(userID int, recID int) (structs.Conversation, error) {
-	var globalConvoID int
 
 	// Creiamo un nuovo globalConvoID
-	result, err := db.c.Exec("INSERT INTO GlobalConversation (isGroup) VALUES (?);", false)
+	result, err := db.c.Exec("INSERT INTO GlobalConversation (isGroup, groupName) VALUES (?, ?);", false, "")
 	if err != nil {
 		return structs.Conversation{}, err
 	}
@@ -18,17 +17,16 @@ func (db *appdbimpl) CreateConversation(userID int, recID int) (structs.Conversa
 	if err != nil {
 		return structs.Conversation{}, err
 	}
-	globalConvoID = int(globalConvoID64)
 
 	// Creiamo la conversazione per il primo utente
-	_, err = db.c.Exec("INSERT INTO Conversation (userID, globalConvoID, visible) VALUES (?, ?, ?);", userID, globalConvoID, true)
+	_, err = db.c.Exec("INSERT INTO Conversation (userID, globalConvoID, visible) VALUES (?, ?, ?);", userID, int(globalConvoID64), true)
 	if err != nil {
 		return structs.Conversation{}, err
 	}
 
 	var convo structs.Conversation
 	convo.UserID = userID
-	convo.GlobalConvoID = globalConvoID
+	convo.GlobalConvoID = int(globalConvoID64)
 
 	return convo, nil
 

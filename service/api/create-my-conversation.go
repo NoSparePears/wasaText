@@ -5,14 +5,13 @@ import (
 	"net/http"
 	"strconv"
 	"wasaText/service/api/reqcontext"
-	"wasaText/service/structs"
 
 	"github.com/julienschmidt/httprouter"
 )
 
 // rt.router.PUT("/profiles/:userID/conversations/:destID", rt.wrap(rt.createConversation, true))
 func (rt *_router) createConversation(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
-	var convo structs.Conversation
+
 	//parse and validate userID
 	userID, err := strconv.Atoi(ps.ByName("userID"))
 	if err != nil {
@@ -33,10 +32,8 @@ func (rt *_router) createConversation(w http.ResponseWriter, r *http.Request, ps
 		return
 	}
 
-	convo.UserID = userID
-
 	//return convo object with his identificator
-	convo, err = rt.db.CreateConversation(convo.UserID, destID)
+	convo, err := rt.db.CreateConversation(userID, destID)
 	if err != nil {
 		InternalServerError(w, err, ctx)
 		return
