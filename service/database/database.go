@@ -89,11 +89,8 @@ type AppDatabase interface {
 	//It changes the group's name
 	SetGroupName(groupID int, name string) error
 
-	//It changes the group's Photo
-	//SetGroupPhoto(user_id int, g_id int, photo string) (structs.Group, error)
-
 	//User leaves group
-	//LeaveGroup(user_id int, g_id int) ([]structs.Conversation, error)
+	LeaveGroup(userID int, groupID int) error
 
 	Ping() error
 }
