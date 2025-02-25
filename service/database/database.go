@@ -87,7 +87,7 @@ type AppDatabase interface {
 	GetGroupMembers(groupID int) ([]structs.User, error)
 
 	//It changes the group's name
-	//SetGroupName(user_id int, g_id int, name string) (structs.Group, error)
+	SetGroupName(groupID int, name string) error
 
 	//It changes the group's Photo
 	//SetGroupPhoto(user_id int, g_id int, photo string) (structs.Group, error)
