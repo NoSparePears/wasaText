@@ -11,7 +11,7 @@ var (
 	query_GETUSERCONVO        = `SELECT globalConvoID FROM Conversation WHERE userID = ? AND globalConvoID = ?;`
 	query_GET_LAST_MSG_ID     = `SELECT MAX(msgID) FROM Message WHERE globalConvoID = ?;`
 	query_UPDATE_LASTMSG      = `UPDATE Conversation SET lastMsgId = ? WHERE userID = ? AND globalConvoID = ?;`
-	query_UPDATE_LASTMSG_NULL = `UPDATE Conversation SET lastMsgId = NULL WHERE userID = ? AND globalConvoID = ?;` // ✅ Aggiunto per gestire NULL
+	query_UPDATE_LASTMSG_NULL = `UPDATE Conversation SET lastMsgId = NULL WHERE userID = ? AND globalConvoID = ?;`
 )
 
 // DeleteMessage elimina un messaggio e aggiorna lastMsgId nella tabella Conversation
