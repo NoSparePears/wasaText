@@ -96,6 +96,9 @@ type AppDatabase interface {
 	//It adds checkmark for a sent message, and its timestamp
 	AddSentCheck(msgID int) error
 
+	//It adds checkmark for reading a message, and its timestamp
+	AddReadCheck(convoID int) error
+
 	Ping() error
 }
 
