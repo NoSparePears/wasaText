@@ -32,12 +32,15 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"regexp"
 	"syscall"
 	"wasaText/service/api"
 	"wasaText/service/database"
 	"wasaText/service/globaltime"
 
 	"github.com/ardanlabs/conf"
+	"github.com/mattn/go-sqlite3"
+	_ "github.com/mattn/go-sqlite3"
 	"github.com/sirupsen/logrus"
 )
 
@@ -79,6 +82,16 @@ func run() error {
 	}
 
 	logger.Infof("application initializing")
+
+	var regex = func(re, s string) (bool, error) {
+		return regexp.MatchString(re, s)
+	}
+	sql.Register("sqlite3_extended",
+		&sqlite3.SQLiteDriver{
+			ConnectHook: func(conn *sqlite3.SQLiteConn) error {
+				return conn.RegisterFunc("regexp", regex, true)
+			},
+		})
 
 	// Start Database
 	logger.Println("initializing database support")
