@@ -47,7 +47,6 @@ var sql_MSGTABLE = `CREATE TABLE IF NOT EXISTS Message (
   timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
   
   CONSTRAINT fk_convo FOREIGN KEY (convoID) REFERENCES GlobalConversation(globalConvoID),
-  CONSTRAINT fk_user FOREIGN KEY (senderID) REFERENCES User(userID),
   
   UNIQUE (msgID, convoID)
 );`
