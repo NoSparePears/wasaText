@@ -1,4 +1,6 @@
 openapi: 3.0.3
+servers:
+  - url: "http://localhost:3000"
 info:
   title: WASAtext
   description: |-
@@ -50,7 +52,7 @@ paths:
               schema: {$ref: "#/components/schemas/Identificator"}
         "400": { $ref: "#/components/responses/BadRequest"}
         "403": { $ref: "#/components/responses/Forbidden" }
-        "500": { $ref: "#/components/responses/BadRequest"}
+        "500": { $ref: "#/components/responses/InternalServerError"}
   /profiles:
     parameters:
       - name: searched_user
@@ -60,7 +62,7 @@ paths:
         schema: { $ref: "#/components/schemas/Username"}
     get:
       tags: ["User"]
-      operationId: searchUser 
+      operationId: searchUsers
       description: gets a list of users with corresponding username
       summary: lists of users
       security:
@@ -219,6 +221,23 @@ paths:
     parameters:
       - $ref: "#/components/parameters/user_id"
       - $ref: "#/components/parameters/convo_id"
+    get:
+      summary: list all messages in a conversation
+      tags: ["Conversation"]
+      operationId: getMyMessages
+      description: Obtain list of all messages in a conversation
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: message list obtained succesfully
+          content:
+            plain/text:
+              schema: { $ref: "#/components/schemas/MessagesList" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
     post:
       parameters:
         - name: reply
@@ -638,7 +657,19 @@ components:
             - $ref: "#/components/schemas/PhotoOrGif"
       required: 
         - msg_id
-        - timestamp 
+        - timestamp
+    MessagesList:
+      type: object
+      description: list of messages
+      properties:
+        messages:
+          type: array
+          items:
+            $ref: "#/components/schemas/Message"
+          minItems: 0 
+          maxItems: 999
+      required:
+        - messages 
     Comment:
       description: user's comment on a given message
       type: object

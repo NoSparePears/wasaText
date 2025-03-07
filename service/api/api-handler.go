@@ -11,7 +11,7 @@ func (rt *_router) Handler() http.Handler {
 
 	rt.router.POST("/session", rt.wrap(rt.doLogin, false))
 
-	rt.router.GET("/profiles", rt.wrap(rt.searchUser, true))
+	rt.router.GET("/profiles", rt.wrap(rt.searchUsers, true))
 
 	rt.router.PUT("/profiles/:userID/username", rt.wrap(rt.setMyUserName, true))
 
@@ -24,6 +24,8 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.GET("/profiles/:userID/conversations/:destID", rt.wrap(rt.getConversation, true))
 
 	rt.router.DELETE("/profiles/:userID/conversations/:destID", rt.wrap(rt.deleteConversation, true))
+
+	rt.router.GET("/profiles/:userID/conversations/:destID/messages", rt.wrap(rt.getMyMessages, true))
 
 	rt.router.POST("/profiles/:userID/conversations/:destID/messages", rt.wrap(rt.sendMessage, true))
 

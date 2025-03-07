@@ -1,8 +1,6 @@
 package database
 
 import (
-	"database/sql"
-	"errors"
 	"fmt"
 	"io"
 	"os"
@@ -10,44 +8,24 @@ import (
 	"wasaText/service/structs"
 )
 
-var query_ADDUSER = `INSERT INTO User (userID, username) VALUES (?, ?);`
-
-var query_MAXID = `SELECT MAX(userID) FROM User`
-
 func (db *appdbimpl) CreateUser(username string) (structs.User, error) {
 	var user structs.User
 	user.Username = username
 
-	//FIND userID
-	var _maxID = sql.NullInt64{Int64: 0, Valid: false}
-	row, err := db.c.Query(query_MAXID)
+	// Creiamo un nuovo userID
+	result, err := db.c.Exec("INSERT INTO User (username) VALUES (?);", username)
 	if err != nil {
-		return user, err
+		return structs.User{}, err
 	}
-
-	var maxID int
-	for row.Next() {
-		if row.Err() != nil {
-			return user, err
-		}
-
-		err = row.Scan(&_maxID)
-		if err != nil && !errors.Is(err, sql.ErrNoRows) {
-			return user, err
-		}
-
-		if !_maxID.Valid {
-			maxID = 0
-		} else {
-			maxID = int(_maxID.Int64)
-		}
+	// Otteniamo l'ID appena creato
+	userID64, err := result.LastInsertId()
+	if err != nil {
+		return structs.User{}, err
 	}
-
-	//SET USERID
-	user.ID = maxID + 1
+	user.ID = int(userID64)
 
 	//CREATE USER FOLDER
-	path := "./storage/profiles" + fmt.Sprint(user.ID) + "/media"
+	path := "./storage/" + fmt.Sprint(user.ID) + "/media"
 	if err := os.MkdirAll(path, os.ModePerm); err != nil {
 		return user, err
 	}
@@ -69,12 +47,9 @@ func (db *appdbimpl) CreateUser(username string) (structs.User, error) {
 	if err != nil {
 		return user, err
 	}
-
-	//INSERT USER
-	_, err = db.c.Exec(query_ADDUSER, user.ID, user.Username)
+	user.UserPropic64, err = utils.ImageToBase64(utils.GetProfilePicPath(user.ID))
 	if err != nil {
 		return user, err
 	}
-
 	return user, nil
 }

@@ -6,6 +6,7 @@ import (
 	"strconv"
 
 	"wasaText/service/api/reqcontext"
+	"wasaText/service/structs"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -41,10 +42,27 @@ func (rt *_router) getConversation(w http.ResponseWriter, r *http.Request, ps ht
 		return
 	}
 
+	destUser, err := rt.db.GetUsernameByID(destID)
+	if err != nil {
+		InternalServerError(w, err, ctx)
+		return
+	}
+	destUser.ID = destID
+	/* IMPLEMENTA PER RICAVARE FOTO PROFILP
+	destUser.UserPropic64 = */
+
+	type response struct {
+		Convo    structs.Conversation `json:"conversation"`
+		DestUser structs.User         `json:"destUser"`
+	}
+	resp := response{
+		Convo:    dbConvo,
+		DestUser: destUser,
+	}
 	//response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	if err = json.NewEncoder(w).Encode(dbConvo); err != nil {
+	if err = json.NewEncoder(w).Encode(resp); err != nil {
 		ctx.Logger.WithError(err).Error("Error encoding response")
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return

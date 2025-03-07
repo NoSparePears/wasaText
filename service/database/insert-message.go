@@ -6,7 +6,7 @@ import (
 )
 
 var (
-	query_INSERT_MESSAGE  = `INSERT INTO Message (globalConvoID, senderID, content) VALUES (?, ?, ?);`
+	query_INSERT_MESSAGE  = `INSERT INTO Message (convoID, senderID, content) VALUES (?, ?, ?);`
 	query_UPDATE_LAST_MSG = `UPDATE Conversation SET lastMsgId = ? WHERE userID = ? AND globalConvoID = ?;`
 	query_GET_TIMESTAMP   = `SELECT timestamp FROM Message WHERE msgID = ?;`
 )
@@ -21,16 +21,18 @@ func (db *appdbimpl) InsertMessage(msg structs.Message, recID int) (structs.Mess
 	// Controlla se il messaggio è stato aggiunto
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
-		return structs.Message{}, errors.New("failed to retrieve deletion status")
+		return structs.Message{}, errors.New("failed to retrieve insertion status")
 	}
 	if rowsAffected == 0 {
 		return structs.Message{}, errors.New("message not found or unauthorized action")
 	}
 	// Ottiene l'ID del messaggio appena creato
-	msgID, err := result.LastInsertId()
+	msgID64, err := result.LastInsertId()
 	if err != nil {
 		return structs.Message{}, errors.New("failed to retrieve message ID")
 	}
+	msgID := int(msgID64)
+	msg.MsgID = msgID
 	// Recupera il timestamp dal database
 	var timestamp string
 	err = db.c.QueryRow(query_GET_TIMESTAMP, msgID).Scan(&timestamp)
@@ -44,15 +46,11 @@ func (db *appdbimpl) InsertMessage(msg structs.Message, recID int) (structs.Mess
 		return structs.Message{}, errors.New("failed to update last message ID")
 	}
 
-	//crea conversazione per destinatario se non esiste
-	_, err = db.GetConversation(recID, msg.SenderID)
-	if err != nil {
-		return structs.Message{}, errors.New("failed to create conversation for receiver")
-	}
-
 	err = db.AddSentCheck(msg.MsgID)
 	if err != nil {
 		return structs.Message{}, errors.New("failed to create sent checkmark")
 	}
+	msg.CheckSent = 1
+	msg.CheckReceived = 0
 	return msg, nil
 }

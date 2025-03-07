@@ -1,0 +1,197 @@
+# DO LOGIN #
+POST http://localhost:3000/session  HTTP/1.1
+content-type: application/json
+
+{
+    "username": "lachi"
+}
+
+
+###
+
+# DO LOGIN #
+POST http://localhost:3000/session  HTTP/1.1
+content-type: application/json
+
+{
+    "username": "mattia"
+}
+
+###
+
+# DO LOGIN #
+POST http://localhost:3000/session  HTTP/1.1
+content-type: application/json
+
+{
+    "username": "ciz"
+}
+
+###
+
+# SET USERNAME #
+PUT http://localhost:3000/profiles/1/username HTTP/1.1
+Authorization: 1
+content-type: application/json
+
+{
+    "username": "mattia"
+}
+
+### 
+
+# DELETE USER #
+DELETE http://localhost:3000/profiles/5  HTTP/1.1
+Authorization: 5
+
+### 
+
+# SET PROFILE PHOTO #
+PUT http://localhost:3000/profiles/1/photo  HTTP/1.1
+Authorization: 1
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="image"; filename="image.jpeg"
+Content-Type: image/jpeg
+
+< ./image.jpeg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+
+###
+
+# CREATE GROUP #
+POST http://localhost:3000/profiles/1/groups  HTTP/1.1
+Authorization: 1
+content-type: application/json
+
+{
+    "groupName": "fate",
+    "users" : [
+        {
+            "username": "ciz"
+        },
+        {
+            "username": "mattia"
+        }
+    ]
+}
+
+### 
+
+# ADD TO GROUP #
+PUT http://localhost:3000/profiles/1/groups/1  HTTP/1.1
+Authorization: 1
+content-type: application/json 
+
+{
+    "users" : [
+        {
+            "username": "eros"
+        }
+    ]
+}
+
+### 
+
+# LEAVE GROUP #
+DELETE http://localhost:3000/profiles/1/groups/1  HTTP/1.1
+Authorization: 1
+
+###
+
+# SET GROUPNAME #
+PUT http://localhost:3000/profiles/1/groups/1/name HTTP/1.1
+Authorization: 1
+content-type: application/json
+
+{
+    "groupName": "negletti"
+} 
+
+### 
+
+# SET GROUP PHOTO #
+PUT http://localhost:3000/profiles/1/groups/1/photo  HTTP/1.1
+Authorization: 1
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="image"; filename="image.jpeg"
+Content-Type: image/jpeg
+
+< ./image.jpeg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 
+
+# CREATE CONVERSATION #
+
+PUT http://localhost:3000/profiles/1/conversations/3  HTTP/1.1
+Authorization: 1
+
+{
+    "text" : "grande capo bianco"
+}
+
+###
+
+# GET CONVERSATIONS #
+GET http://localhost:3000/profiles/1/conversations  HTTP/1.1
+Authorization: 1
+
+### 
+
+# SEND MESSAGE #
+POST http://localhost:3000/profiles/1/conversations/1/messages  HTTP/1.1
+Authorization: 1
+Content-Type: multipart/form-data; boundary=----WebKitFormBoundary7MA4YWxkTrZu0gW
+
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="text"
+
+ciao
+------WebKitFormBoundary7MA4YWxkTrZu0gW
+Content-Disposition: form-data; name="image"; filename="image.jpeg"
+Content-Type: image/jpeg
+
+< ./image.jpeg
+------WebKitFormBoundary7MA4YWxkTrZu0gW--
+
+### 
+
+# FORWARD MESSAGE #
+POST http://localhost:3000/profiles/1/conversations/1/messages/2?dest_conv=2 HTTP/1.1
+Authorization: 1
+content-type: application/json
+
+###
+
+# DELETE MESSAGE #
+DELETE http://localhost:3000/profiles/1/conversations/2/messages/2  HTTP/1.1
+Authorization: 1
+
+###
+
+# GET CONVERSATION #
+GET http://localhost:3000/profiles/1/conversations/1  HTTP/1.1
+Authorization: 1 
+
+###
+
+# COMMENT MESSAGE # 
+PUT http://localhost:3000/profiles/1/conversations/2/messages/3/comments HTTP/1.1
+Authorization: 1
+content-type: application/json
+
+{
+    "comment": "😅"
+}
+
+### 
+
+# UNCOMMENT MESSAGE #
+DELETE http://localhost:3000/profiles/1/conversations/2/messages/3/comments/1 HTTP/1.1
+Authorization: 1
+content-type: application/json

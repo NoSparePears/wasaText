@@ -3,6 +3,7 @@ package structs
 type Conversation struct {
 	UserConvoID   int    `json:"userConvoID"`
 	UserID        int    `json:"userID"`
+	DestUserID    int    `json:"destUserID"`
 	GlobalConvoID int    `json:"globalConvoID"`
 	LastMsgID     int    `json:"lastMsgID,omitempty"`
 	DelByUser     bool   `json:"delByUser"`

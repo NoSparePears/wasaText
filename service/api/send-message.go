@@ -2,7 +2,7 @@ package api
 
 import (
 	"encoding/json"
-	"errors"
+	"io"
 	"net/http"
 	"strconv"
 	"wasaText/service/api/reqcontext"
@@ -11,7 +11,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-//rt.router.POST("/profiles/:userID/conversations/:destID/messages", rt.wrap(rt.sendMessage, true))
+// rt.router.POST("/profiles/:userID/conversations/:destID/messages", rt.wrap(rt.sendMessage, true))
 
 func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	//parse the sender of the message
@@ -32,26 +32,51 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
-	var msg structs.Message
-	//read request body
-	err = json.NewDecoder(r.Body).Decode(&msg.Content)
-	if err != nil {
-		BadRequest(w, err, ctx, "Error decoding JSON")
+	// Ensure it's a POST request
+	if r.Method != http.MethodPost {
+		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
 		return
 	}
-	//check provided body for the message
-	if msg.Content == "" {
-		BadRequest(w, errors.New("string is required"), ctx, "Missing message body")
+
+	// Read the request body
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		http.Error(w, "Failed to read request body", http.StatusBadRequest)
+		return
+	}
+	defer r.Body.Close()
+
+	// Parse JSON
+	var msg structs.Message
+	err = json.Unmarshal(body, &msg)
+	if err != nil {
+		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
 		return
 	}
 
 	msg.SenderID = sendID
+	id, err := rt.db.GetConvoID(sendID, recID)
+	if err != nil {
+		InternalServerError(w, err, ctx)
+		return
+	}
+	msg.ConvoID = id
+
 	//insert message inside db
 	dbMsg, err := rt.db.InsertMessage(msg, recID)
 	if err != nil {
 		InternalServerError(w, err, ctx)
 		return
 	}
+	/*
+		type response struct {
+			Msg structs.Message `json:"message"`
+		}
+
+		resp := response{
+			Msg: dbMsg,
+		}
+	*/
 	//response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

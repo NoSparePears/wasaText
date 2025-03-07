@@ -48,8 +48,14 @@ type AppDatabase interface {
 	ChangeUsername(user_id int, name string) error
 
 	//Search user by username
-
 	SearchUser(username string) (structs.User, error)
+
+	SearchUsers(search string) ([]structs.User, error)
+
+	GetUsernameByID(id int) (structs.User, error)
+
+	//Check if given username already exists
+	CheckUsername(username string) (bool, error)
 
 	//It returns an array of conversations
 	GetConversations(user_id int) ([]structs.Conversation, error)
@@ -60,8 +66,12 @@ type AppDatabase interface {
 	//It returns a specific conversation
 	GetConversation(user_id int, id_rec int) (structs.Conversation, error)
 
+	GetConvoID(userID int, recID int) (int, error)
+
 	//It deletes a specific conversation
 	DeleteConversation(user_id int, convo_id int) ([]structs.Conversation, error)
+
+	GetMessages(userID int, recID int) ([]structs.Message, error)
 
 	//It sends a Message
 	InsertMessage(msg structs.Message, recID int) (structs.Message, error)
