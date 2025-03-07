@@ -52,10 +52,10 @@ func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httpr
 		return
 	}
 
-	//set response header for json content
+	// set response header for json content
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	//encode group in json
+	// encode group in json
 	if err = json.NewEncoder(w).Encode("Group's name changed correctly."); err != nil {
 		ctx.Logger.WithError(err).Error("Error encoding response")
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)

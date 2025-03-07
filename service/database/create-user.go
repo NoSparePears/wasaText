@@ -24,13 +24,13 @@ func (db *appdbimpl) CreateUser(username string) (structs.User, error) {
 	}
 	user.ID = int(userID64)
 
-	//CREATE USER FOLDER
+	// CREATE USER FOLDER
 	path := "./storage/" + fmt.Sprint(user.ID) + "/media"
 	if err := os.MkdirAll(path, os.ModePerm); err != nil {
 		return user, err
 	}
 
-	//SET DEFAULT PROPIC
+	// SET DEFAULT PROPIC
 	source, err := os.Open("./storage/default_propic.jpg")
 	if err != nil {
 		return user, err

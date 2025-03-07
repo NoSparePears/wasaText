@@ -9,7 +9,7 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-//rt.router.DELETE("/profiles/:userID/conversations/:destID/messages/:msgID/comments/:commID", rt.wrap(rt.uncommmentMessage, true))
+// rt.router.DELETE("/profiles/:userID/conversations/:destID/messages/:msgID/comments/:commID", rt.wrap(rt.uncommmentMessage, true))
 
 func (rt *_router) uncommmentMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
@@ -18,19 +18,19 @@ func (rt *_router) uncommmentMessage(w http.ResponseWriter, r *http.Request, ps 
 		BadRequest(w, err, ctx, "Invalid userID")
 		return
 	}
-	//check auth
+	// check auth
 	if sendID != ctx.UserId {
 		Forbidden(w, err, ctx, "Unauthorized")
 		return
 	}
-	//parse message ID
+	// parse message ID
 	msgID, err := strconv.Atoi(ps.ByName("msgID"))
 	if err != nil {
 		BadRequest(w, err, ctx, "Invalid msgID")
 		return
 	}
 
-	//parse comment ID
+	// parse comment ID
 	commID, err := strconv.Atoi(ps.ByName("commID"))
 	if err != nil {
 		BadRequest(w, err, ctx, "Invalid commID")

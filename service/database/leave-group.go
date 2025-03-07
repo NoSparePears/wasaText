@@ -11,7 +11,7 @@ func (db *appdbimpl) LeaveGroup(userID int, groupID int) error {
 		return errors.New("internal server error")
 	}
 
-	//check delete update
+	// check delete update
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return errors.New("failed to retrieve update status")

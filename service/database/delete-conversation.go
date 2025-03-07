@@ -9,12 +9,12 @@ var query_DELETECONVO = `DELETE FROM Conversation WHERE sendID = ? AND recID = ?
 var query_GETUSERCONVOS = `SELECT convoID FROM Conversation WHERE sendID = ?;`
 
 func (db *appdbimpl) DeleteConversation(user_id int, rec_id int) ([]structs.Conversation, error) {
-	//execute delete query
+	// execute delete query
 	result, err := db.c.Exec(query_DELETECONVO, user_id, rec_id)
 	if err != nil {
 		return nil, errors.New("internal server error")
 	}
-	//check if any rows was affected
+	// check if any rows was affected
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return nil, errors.New("failed to retrieve deletion status")
@@ -22,7 +22,7 @@ func (db *appdbimpl) DeleteConversation(user_id int, rec_id int) ([]structs.Conv
 	if rowsAffected == 0 {
 		return nil, errors.New("conversation not found or unauthorized action")
 	}
-	//retrieve updated list of user's convos
+	// retrieve updated list of user's convos
 	rows, err := db.c.Query(query_GETUSERCONVOS, user_id)
 	if err != nil {
 		return nil, errors.New("failed to retrieve updated conversations")

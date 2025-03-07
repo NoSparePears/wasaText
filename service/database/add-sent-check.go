@@ -31,7 +31,7 @@ func (db *appdbimpl) AddSentCheck(msgID int) error {
 		return errors.New("internal server error")
 	}
 
-	//check name update
+	// check name update
 	rowsUpdated, err := update.RowsAffected()
 	if err != nil {
 		return errors.New("failed to retrieve update status")

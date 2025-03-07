@@ -32,7 +32,7 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 		BadRequest(w, err, ctx, "Error decoding JSON")
 		return
 	}
-	//check provided string
+	// check provided string
 	if groupRequest.Name == "" {
 		BadRequest(w, errors.New("string is required"), ctx, "Missing group's name")
 		return
@@ -52,10 +52,10 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 		group.Members = append(group.Members, member)
 	}
 
-	//set response header for json content
+	// set response header for json content
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	//encode user in json
+	// encode user in json
 	if err = json.NewEncoder(w).Encode(group); err != nil {
 		ctx.Logger.WithError(err).Error("Error encoding response")
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)

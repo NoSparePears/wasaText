@@ -15,21 +15,21 @@ import (
 
 func (rt *_router) getMyConversations(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
-	//parse and validate userID
+	// parse and validate userID
 	userID, err := strconv.Atoi(ps.ByName("userID"))
 	if err != nil {
 		BadRequest(w, err, ctx, "Invalid userID")
 		return
 	}
 
-	//check user authorization
+	// check user authorization
 	if userID != ctx.UserId {
 		Forbidden(w, err, ctx, "Unauthorized")
 		return
 	}
 
 	var dbConvos []structs.Conversation
-	//retrieve and validate convos data from db
+	// retrieve and validate convos data from db
 	dbConvos, err = rt.db.GetConversations(userID)
 	if err != nil {
 		InternalServerError(w, err, ctx)
@@ -58,7 +58,7 @@ func (rt *_router) getMyConversations(w http.ResponseWriter, r *http.Request, ps
 		convos = append(convos, convo)
 	}
 
-	//response
+	// response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err = json.NewEncoder(w).Encode(convos); err != nil {

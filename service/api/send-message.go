@@ -14,18 +14,18 @@ import (
 // rt.router.POST("/profiles/:userID/conversations/:destID/messages", rt.wrap(rt.sendMessage, true))
 
 func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
-	//parse the sender of the message
+	// parse the sender of the message
 	sendID, err := strconv.Atoi(ps.ByName("userID"))
 	if err != nil {
 		BadRequest(w, err, ctx, "Invalid userID")
 		return
 	}
-	//check sender's auth
+	// check sender's auth
 	if sendID != ctx.UserId {
 		Forbidden(w, err, ctx, "Unauthorized")
 		return
 	}
-	//parse the receiver's id
+	// parse the receiver's id
 	recID, err := strconv.Atoi(ps.ByName("destID"))
 	if err != nil {
 		BadRequest(w, err, ctx, "Invalid destID")
@@ -62,13 +62,13 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 	}
 	msg.ConvoID = id
 
-	//insert message inside db
+	// insert message inside db
 	dbMsg, err := rt.db.InsertMessage(msg, recID)
 	if err != nil {
 		InternalServerError(w, err, ctx)
 		return
 	}
-	//response
+	// response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err = json.NewEncoder(w).Encode(dbMsg); err != nil {

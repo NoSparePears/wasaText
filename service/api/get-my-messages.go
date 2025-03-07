@@ -13,14 +13,14 @@ import (
 
 // rt.router.GET("/profiles/:userID/conversations/:destID/messages", rt.wrap(rt.getMessages, true))
 func (rt *_router) getMyMessages(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
-	//parse and validate userID
+	// parse and validate userID
 	userID, err := strconv.Atoi(ps.ByName("userID"))
 	if err != nil {
 		BadRequest(w, err, ctx, "Invalid userID")
 		return
 	}
 
-	//check user authorization
+	// check user authorization
 	if userID != ctx.UserId {
 		Forbidden(w, err, ctx, "Unauthorized")
 		return
@@ -46,7 +46,7 @@ func (rt *_router) getMyMessages(w http.ResponseWriter, r *http.Request, ps http
 		// Simply append each message to the response slice
 		messages = append(messages, dbMessage)
 	}
-	//response
+	// response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err = json.NewEncoder(w).Encode(messages); err != nil {

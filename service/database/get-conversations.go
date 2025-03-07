@@ -8,7 +8,7 @@ import (
 var query_GETCONVERSATIONS = `SELECT destUserID FROM Conversation WHERE userID = ?;`
 
 func (db *appdbimpl) GetConversations(user_id int) ([]structs.Conversation, error) {
-	//get conversations from database
+	// get conversations from database
 	rows, err := db.c.Query(query_GETCONVERSATIONS, user_id)
 	if err != nil {
 		return nil, errors.New("internal server error")
@@ -25,7 +25,7 @@ func (db *appdbimpl) GetConversations(user_id int) ([]structs.Conversation, erro
 		}
 		convos = append(convos, convo)
 	}
-	//check for errors encountered during iteration
+	// check for errors encountered during iteration
 	if rows.Err() != nil {
 		return nil, errors.New("internal server error")
 	}

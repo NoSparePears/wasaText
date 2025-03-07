@@ -12,7 +12,7 @@ import (
 )
 
 func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
-	//get userID from the URL
+	// get userID from the URL
 	profileUserID, err := strconv.Atoi(ps.ByName("userID"))
 	if err != nil {
 		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
@@ -21,7 +21,7 @@ func (rt *_router) setMyUserName(w http.ResponseWriter, r *http.Request, ps http
 
 	userID := ctx.UserId
 
-	//check if user is authorized
+	// check if user is authorized
 	if profileUserID != userID {
 		http.Error(w, "Forbidden", http.StatusForbidden)
 		return

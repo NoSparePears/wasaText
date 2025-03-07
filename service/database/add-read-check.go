@@ -12,10 +12,10 @@ WHERE m.convoID = ?
   AND c.read = FALSE;`
 
 func (db *appdbimpl) AddReadCheck(convoID int) error {
-	//controllo se ci sono messaggi nella data conversazione
-	//controllo quali di quei messsaggi non hanno il campo read = true
-	//modifico quel campo a false
-	//aggiungo timestamp
+	// controllo se ci sono messaggi nella data conversazione
+	// controllo quali di quei messsaggi non hanno il campo read = true
+	// modifico quel campo a false
+	// aggiungo timestamp
 	rows, err := db.c.Query(query_GET_MESSAGES, convoID)
 	if err != nil {
 		return errors.New("internal server error")

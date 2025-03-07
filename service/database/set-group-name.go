@@ -8,7 +8,7 @@ func (db *appdbimpl) SetGroupName(groupID int, name string) error {
 		return errors.New("internal server error")
 	}
 
-	//check name update
+	// check name update
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return errors.New("failed to retrieve update status")

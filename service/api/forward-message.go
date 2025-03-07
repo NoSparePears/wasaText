@@ -46,7 +46,7 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 		BadRequest(w, err, ctx, "Invalid request body")
 		return
 	}
-	//controllo che la conversazione nella quale voglio inoltrare msg esista, sennò la creo
+	// controllo che la conversazione nella quale voglio inoltrare msg esista, sennò la creo
 	convo, err := rt.db.GetConversation(userID, forwardRequest.TargetConvoID)
 	if err != nil {
 		InternalServerError(w, err, ctx)

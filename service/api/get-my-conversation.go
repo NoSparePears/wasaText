@@ -15,27 +15,27 @@ import (
 
 func (rt *_router) getConversation(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
-	//parse and validate userID
+	// parse and validate userID
 	userID, err := strconv.Atoi(ps.ByName("userID"))
 	if err != nil {
 		BadRequest(w, err, ctx, "Invalid userID")
 		return
 	}
 
-	//check authorization
+	// check authorization
 	if userID != ctx.UserId {
 		Forbidden(w, err, ctx, "Unauthorized")
 		return
 	}
 
-	//parse and validate destID
+	// parse and validate destID
 	destID, err := strconv.Atoi(ps.ByName("destID"))
 	if err != nil {
 		InternalServerError(w, err, ctx)
 		return
 	}
 
-	//retrieve and validate convo data from db
+	// retrieve and validate convo data from db
 	dbConvo, err := rt.db.GetConversation(userID, destID)
 	if err != nil {
 		InternalServerError(w, err, ctx)
@@ -59,7 +59,7 @@ func (rt *_router) getConversation(w http.ResponseWriter, r *http.Request, ps ht
 		Convo:    dbConvo,
 		DestUser: destUser,
 	}
-	//response
+	// response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err = json.NewEncoder(w).Encode(resp); err != nil {

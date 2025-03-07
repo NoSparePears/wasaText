@@ -13,18 +13,18 @@ import (
 
 // rt.router.DELETE("/profiles/:userID/conversations/:destID", rt.wrap(rt.deleteConversation, true))
 func (rt *_router) deleteConversation(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
-	//parse requesting user ID
+	// parse requesting user ID
 	reqUserID, err := strconv.Atoi(ps.ByName("userID"))
 	if err != nil {
 		BadRequest(w, err, ctx, "Invalid userID")
 		return
 	}
-	//check auth
+	// check auth
 	if reqUserID != ctx.UserId {
 		Forbidden(w, err, ctx, "Unauthorized")
 		return
 	}
-	//parse destID
+	// parse destID
 	destID, err := strconv.Atoi((ps.ByName("destID")))
 	if err != nil {
 		BadRequest(w, err, ctx, "Invalid destID")
@@ -38,10 +38,10 @@ func (rt *_router) deleteConversation(w http.ResponseWriter, r *http.Request, ps
 		return
 	}
 
-	//set responde header for json content
+	// set responde header for json content
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	//encode convos in json
+	// encode convos in json
 	if err = json.NewEncoder(w).Encode(convos); err != nil {
 		ctx.Logger.WithError(err).Error("Error encoding response")
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)

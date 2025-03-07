@@ -12,7 +12,7 @@ import (
 func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	var user structs.User
 
-	//read request body
+	// read request body
 	err := json.NewDecoder(r.Body).Decode(&user)
 	if err != nil {
 		BadRequest(w, err, ctx, "Error decoding JSON")
@@ -43,7 +43,7 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 		user = dbUser
 	}
 
-	//Response
+	// Response
 	w.Header().Set("content-type", "application/json")
 	if err := json.NewEncoder(w).Encode(user); err != nil {
 		InternalServerError(w, err, ctx)

@@ -8,7 +8,7 @@ import (
 var query_GETMEMBERS = `SELECT memberID FROM GroupMember WHERE groupID = ?`
 
 func (db *appdbimpl) GetGroupMembers(group_id int) ([]structs.User, error) {
-	//get members from database
+	// get members from database
 	rows, err := db.c.Query(query_GETMEMBERS, group_id)
 	if err != nil {
 		return nil, errors.New("internal server error")
@@ -24,7 +24,7 @@ func (db *appdbimpl) GetGroupMembers(group_id int) ([]structs.User, error) {
 		}
 		members = append(members, member)
 	}
-	//check for errors encountered during iteration
+	// check for errors encountered during iteration
 	if rows.Err() != nil {
 		return nil, errors.New("internal server error")
 	}

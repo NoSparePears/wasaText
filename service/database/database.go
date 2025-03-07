@@ -44,69 +44,69 @@ var ErrUserDoesNotExist = errors.New("user does not exists")
 type AppDatabase interface {
 	CreateUser(username string) (structs.User, error)
 
-	//ChangeUsername allows to set/change username
+	// ChangeUsername allows to set/change username
 	ChangeUsername(user_id int, name string) error
 
-	//Search user by username
+	// Search user by username
 	SearchUser(username string) (structs.User, error)
 
 	SearchUsers(search string) ([]structs.User, error)
 
 	GetUsernameByID(id int) (structs.User, error)
 
-	//Check if given username already exists
+	// Check if given username already exists
 	CheckUsername(username string) (bool, error)
 
-	//It returns an array of conversations
+	// It returns an array of conversations
 	GetConversations(user_id int) ([]structs.Conversation, error)
 
-	//creates a new conversation in the database, given an user, it returns that conversation
+	// creates a new conversation in the database, given an user, it returns that conversation
 	CreateConversation(user_id int, rec_id int) (structs.Conversation, error)
 
-	//It returns a specific conversation
+	// It returns a specific conversation
 	GetConversation(user_id int, id_rec int) (structs.Conversation, error)
 
 	GetConvoID(userID int, recID int) (int, error)
 
-	//It deletes a specific conversation
+	// It deletes a specific conversation
 	DeleteConversation(user_id int, convo_id int) ([]structs.Conversation, error)
 
 	GetMessages(userID int, recID int) ([]structs.Message, error)
 
-	//It sends a Message
+	// It sends a Message
 	InsertMessage(msg structs.Message, recID int) (structs.Message, error)
 
-	//It deletes a Message
+	// It deletes a Message
 	DeleteMessage(msgID int, convoID int, senderID int) (structs.Conversation, error)
 
-	//It comments a Message
+	// It comments a Message
 	InsertComment(comment structs.Comment) (structs.Comment, error)
 
-	//It forwards a massage to a conversation
+	// It forwards a massage to a conversation
 	ComposeMsgToForward(msgID int, convoID int, customContent string) (structs.Message, error)
 
-	//It deletes a comment
+	// It deletes a comment
 	DeleteComment(user_id int, msg_id int, comm_id int) error
 
-	//It creates a group
+	// It creates a group
 	CreateGroup(groupName string, userID int) (structs.Group, error)
 
-	//It adds another user to a group
+	// It adds another user to a group
 	AddToGroup(user_id int, g_id int) error
 
-	//It returns a list for all the members in a group
+	// It returns a list for all the members in a group
 	GetGroupMembers(groupID int) ([]structs.User, error)
 
-	//It changes the group's name
+	// It changes the group's name
 	SetGroupName(groupID int, name string) error
 
-	//User leaves group
+	// User leaves group
 	LeaveGroup(userID int, groupID int) error
 
-	//It adds checkmark for a sent message, and its timestamp
+	// It adds checkmark for a sent message, and its timestamp
 	AddSentCheck(msgID int) error
 
-	//It adds checkmark for reading a message, and its timestamp
+	// It adds checkmark for reading a message, and its timestamp
 	AddReadCheck(convoID int) error
 
 	Ping() error

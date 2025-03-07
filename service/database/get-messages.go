@@ -20,7 +20,7 @@ func (db *appdbimpl) GetMessages(userID int, recID int) ([]structs.Message, erro
 		return nil, errors.New("failed to retrieve conversationID")
 	}
 
-	//get messages from database
+	// get messages from database
 	rows, err := db.c.Query("SELECT msgID, convoID, senderID, content, timestamp FROM Message WHERE convoID = ? ORDER BY timestamp ASC;", globalConvoID)
 	if err != nil {
 		return nil, errors.New("couldnt get messages from selected convo")
@@ -41,7 +41,7 @@ func (db *appdbimpl) GetMessages(userID int, recID int) ([]structs.Message, erro
 
 		messages = append(messages, message)
 	}
-	//check for errors encountered during iteration
+	// check for errors encountered during iteration
 	if rows.Err() != nil {
 		return nil, errors.New("errore durante scan rows")
 	}

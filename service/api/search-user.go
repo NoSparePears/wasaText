@@ -22,7 +22,7 @@ func (rt *_router) searchUsers(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
-	//check username in database
+	// check username in database
 	dbUsers, err := rt.db.SearchUsers(query_search)
 	if err != nil {
 		ctx.Logger.Error("Error searching users ", err)
@@ -32,10 +32,10 @@ func (rt *_router) searchUsers(w http.ResponseWriter, r *http.Request, ps httpro
 	users := make([]structs.User, len(dbUsers))
 	copy(users, dbUsers)
 
-	//set response header for json content
+	// set response header for json content
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	//encode user in json
+	// encode user in json
 	if err = json.NewEncoder(w).Encode(users); err != nil {
 		ctx.Logger.WithError(err).Error("Error encoding response")
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)

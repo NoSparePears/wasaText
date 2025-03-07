@@ -22,7 +22,7 @@ func (rt *_router) commentMessage(w http.ResponseWriter, r *http.Request, ps htt
 		Forbidden(w, err, ctx, "Unauthorized")
 		return
 	}
-	//parse the message's id
+	// parse the message's id
 	msgID, err := strconv.Atoi(ps.ByName("msgID"))
 	if err != nil {
 		BadRequest(w, err, ctx, "Invalid msgID")
@@ -30,13 +30,13 @@ func (rt *_router) commentMessage(w http.ResponseWriter, r *http.Request, ps htt
 	}
 
 	var comment structs.Comment
-	//read request body
+	// read request body
 	err = json.NewDecoder(r.Body).Decode(&comment.Emoji)
 	if err != nil {
 		BadRequest(w, err, ctx, "Error decoding JSON")
 		return
 	}
-	//check provided body for the comment
+	// check provided body for the comment
 	if comment.Emoji == "" {
 		BadRequest(w, errors.New("string is required"), ctx, "Missing message body")
 		return
@@ -50,7 +50,7 @@ func (rt *_router) commentMessage(w http.ResponseWriter, r *http.Request, ps htt
 		InternalServerError(w, err, ctx)
 		return
 	}
-	//response
+	// response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	if err = json.NewEncoder(w).Encode(dbComm); err != nil {

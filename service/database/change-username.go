@@ -10,7 +10,7 @@ func (db *appdbimpl) ChangeUsername(userID int, newUsername string) error {
 		return errors.New("internal server error")
 	}
 
-	//check username update
+	// check username update
 	rowsAffected, err := result.RowsAffected()
 	if err != nil {
 		return errors.New("failed to retrieve update status")

@@ -25,10 +25,10 @@
   },
   emits: ['login-success'],
   methods: {
-    //funzione per effettuare login
+    // funzione per effettuare login
     async doLogin() {
         try {
-            //faccio rischiesta login
+            // faccio rischiesta login
             let response = await this.$axios.post('/session', {
                 username: this.username
             });
@@ -43,8 +43,6 @@
             this.$emit('login-success');
         } catch (e) {
             this.errorMsg = e.toString();
-            //document.getElementsByTagName("input")[0].style.outline = "auto";
-            //document.getElementsByTagName("input")[0].style.outlineColor = "red";
         }
     },
     mounted() {
