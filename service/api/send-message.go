@@ -68,15 +68,6 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		InternalServerError(w, err, ctx)
 		return
 	}
-	/*
-		type response struct {
-			Msg structs.Message `json:"message"`
-		}
-
-		resp := response{
-			Msg: dbMsg,
-		}
-	*/
 	//response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
