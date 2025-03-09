@@ -36,13 +36,19 @@ func (rt *_router) deleteMessage(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 
-	convo, err := rt.db.GetConversation(senderID, destID)
+	convoID, err := rt.db.GetConvoID(senderID, destID)
 	if err != nil {
 		InternalServerError(w, err, ctx)
 		return
 	}
 
-	convo, err = rt.db.DeleteMessage(msgID, convo.GlobalConvoID, senderID)
+	err = rt.db.DeleteMessage(msgID, convoID)
+	if err != nil {
+		InternalServerError(w, err, ctx)
+		return
+	}
+
+	messages, err := rt.db.GetMessages(senderID, destID)
 	if err != nil {
 		InternalServerError(w, err, ctx)
 		return
@@ -51,7 +57,7 @@ func (rt *_router) deleteMessage(w http.ResponseWriter, r *http.Request, ps http
 	// response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	if err = json.NewEncoder(w).Encode(convo); err != nil {
+	if err = json.NewEncoder(w).Encode(messages); err != nil {
 		ctx.Logger.WithError(err).Error("Error encoding response")
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return

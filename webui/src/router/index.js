@@ -3,7 +3,6 @@ import HomeWasaText from '../views/HomeWasaText.vue'
 import ProfileView from '../views/ProfileView.vue'
 import LoginView from '../views/LoginView.vue'
 import ChatView from '../views/ChatView.vue'
-import LachiHome from '../views/LachiHome.vue'
 
 const router = createRouter({
 	history: createWebHashHistory(import.meta.env.BASE_URL),

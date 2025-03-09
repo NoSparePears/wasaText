@@ -77,7 +77,7 @@ type AppDatabase interface {
 	InsertMessage(msg structs.Message, recID int) (structs.Message, error)
 
 	// It deletes a Message
-	DeleteMessage(msgID int, convoID int, senderID int) (structs.Conversation, error)
+	DeleteMessage(msgID int, convoID int) error
 
 	// It comments a Message
 	InsertComment(comment structs.Comment) (structs.Comment, error)
