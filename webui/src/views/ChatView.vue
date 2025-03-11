@@ -24,16 +24,27 @@
       <div v-if="showModal" class="message-options-modal">
         <div class="modal-content">
           <h3>What would you like to do with this message?</h3>
-          <button @click="forwardMessage" class="btn btn-primary">Forward</button>
+          <button @click="toggleSearchModal" class="btn btn-primary">Forward</button>
           <button @click="deleteMessage" class="btn btn-danger">Delete</button>
           <button @click="closeModal" class="btn btn-secondary">Cancel</button>
         </div>
       </div>
+      <!-- Modal for searching users to start a new conversation -->
+      <Search :show="searchModalVisible" @close="toggleSearchModal" @user-selected="forwardMessage" title="search">
+        <template v-slot:header>
+          <h3>Users</h3>
+        </template>
+      </Search>
     </div>
   </template>
   
   <script>
+  import Search from '@/components/Search.vue';
+
   export default {
+    components: {
+      Search
+    },
     props: ['id'],
     data() {
       return {
@@ -46,6 +57,7 @@
         showModal: false, // Mostra il modal per le opzioni del messaggio
         selectedMessage: null, // Messaggio selezionato per le opzioni
         errormsg: '', // Messaggio di errore
+        searchModalVisible: false,  //mostra modale ricerca utenti
       };
     },
     methods: {
@@ -102,13 +114,44 @@
         this.selectedMessage = null;
       },
 
+      toggleSearchModal() {
+        
+        this.searchModalVisible = !this.searchModalVisible;
+      },
+  
+      async forwardMessage(destUser) {
+        this.errormsg = '';
+        const userID = sessionStorage.getItem('id');
+        const token = sessionStorage.getItem('token');
+
+        try {
+          const openChat = await this.$axios.get(`/profiles/${userID}/conversations/${destUser.id}`, {
+            headers: { 'Authorization': token }
+          });
+          // Check if request was successful
+          if (openChat.status === 200) {
+            console.log('Chat opened successfully');
+          } else {
+            throw new Error('Request failed with status: ${response.status}');
+          }     
+          const response = await this.$axios.post(`/profiles/${userID}/conversations/${destUser.id}/messages`, {content: this.selectedMessage.content}, {
+            headers: { 'Authorization': token }
+          });
+          this.toggleSearchModal();
+          this.closeModal();
+        } catch (error) {
+          console.error('Error in requests:', error);
+        }
+        
+      },
+
       async deleteMessage() {
         this.errormsg = '';
         const userID = sessionStorage.getItem('id');
         const token = sessionStorage.getItem('token');
         try {
           let response = await this.$axios.delete(`/profiles/${userID}/conversations/${this.destID}/messages/${this.selectedMessage.msgID}`, {
-            headers: { 'Authorization': sessionStorage.getItem('token') }
+            headers: { 'Authorization': token }
           });
           this.messages = [];
           if (this.messages) this.messages = response.data; 
@@ -119,6 +162,7 @@
           console.error('Error deleting message:', error);
         }
       },
+      
 
     },
     mounted() {

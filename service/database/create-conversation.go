@@ -31,12 +31,12 @@ func (db *appdbimpl) CreateConversation(userID int, recID int) (structs.Conversa
 	globalConvoID := int(globalConvoID64)
 
 	// Creiamo la conversazione per il primo utente
-	_, err = db.c.Exec("INSERT INTO Conversation (userID, globalConvoID, visible, destUserID) VALUES (?, ?, ?, ?);", userID, globalConvoID, true, recID)
+	_, err = db.c.Exec("INSERT INTO Conversation (userID, globalConvoID, visible, destUserID, lastMsgId) VALUES (?, ?, ?, ?, ?);", userID, globalConvoID, true, recID, 0)
 	if err != nil {
 		return structs.Conversation{}, err
 	}
 	// Creiamo la conversazione per il secondo utente
-	_, err = db.c.Exec("INSERT INTO Conversation (userID, globalConvoID, visible, destUserID) VALUES (?, ?, ?, ?);", recID, globalConvoID, false, userID)
+	_, err = db.c.Exec("INSERT INTO Conversation (userID, globalConvoID, visible, destUserID, lastMsgId) VALUES (?, ?, ?, ?, ?);", recID, globalConvoID, false, userID, 0)
 	if err != nil {
 		return structs.Conversation{}, err
 	}

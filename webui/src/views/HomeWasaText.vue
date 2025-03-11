@@ -80,6 +80,7 @@ export default {
         console.error('Error fetching conversations:', error);
       }
     },
+    
     async createNewChat(destUser) {
       const userID = sessionStorage.getItem('id');
       const token = sessionStorage.getItem('token');

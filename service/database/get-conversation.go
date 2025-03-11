@@ -19,7 +19,7 @@ func (db *appdbimpl) GetConversation(userID int, recID int) (structs.Conversatio
 	// check if query returned a result
 	if rows.Next() {
 		// Scan values into struct fields
-		err := rows.Scan(&convo.UserConvoID, &convo.UserID, &convo.DestUserID, &convo.GlobalConvoID, &convo.LastMsgID, &convo.DelByUser, &convo.Visible)
+		err := rows.Scan(&convo.UserID, &convo.DestUserID, &convo.GlobalConvoID, &convo.LastMsgID, &convo.DelByUser, &convo.Visible)
 		if err != nil {
 			return structs.Conversation{}, errors.New("failed to retrieve conversation")
 		}
@@ -33,12 +33,12 @@ func (db *appdbimpl) GetConversation(userID int, recID int) (structs.Conversatio
 		if rows.Err() != nil {
 			return structs.Conversation{}, errors.New("internal server error")
 		}
-
-		err = db.AddReadCheck(convo.GlobalConvoID)
-		if err != nil {
-			return structs.Conversation{}, errors.New("failed to create read checkmark")
-		}
-
+		/*
+			err = db.AddReadCheck(convo.GlobalConvoID)
+			if err != nil {
+				return structs.Conversation{}, errors.New("failed to create read checkmark")
+			}
+		*/
 		return convo, nil //success
 	}
 
