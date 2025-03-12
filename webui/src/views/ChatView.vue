@@ -9,8 +9,11 @@
         <ul>
           <li v-for="message in messages" :key="message.msgID" 
               :class="{'own-message': isOwnMessage(message.senderID), 'other-message': !isOwnMessage(message.senderID)}" @click="openMessageOptions(message)">
-            <div class="message-bubble">
-            {{ message.content }}
+            <div class="message-wrapper">
+              <div class="message-bubble">
+                <span class="message-content">{{ message.content }}</span>
+              </div> 
+              <span class="message-timestamp">{{ formatTimestamp(message.timestamp) }}</span>
             </div>
           </li>
         </ul>
@@ -24,6 +27,7 @@
       <div v-if="showModal" class="message-options-modal">
         <div class="modal-content">
           <h3>What would you like to do with this message?</h3>
+          <button @click="toggleCommentModal" class="btn btn-primary">Comment</button>
           <button @click="toggleSearchModal" class="btn btn-primary">Forward</button>
           <button @click="deleteMessage" class="btn btn-danger">Delete</button>
           <button @click="closeModal" class="btn btn-secondary">Cancel</button>
@@ -79,6 +83,35 @@
             this.errormsg = error.response?.data?.message || 'Error fetching messages';
           console.error('Error fetching messages:', error);
         }
+      },
+
+      formatTimestamp(timestamp) {
+        if (!timestamp) return "";
+
+        const date = new Date(timestamp);
+        const now = new Date();
+
+        // Controlla se il messaggio è di oggi
+        const isToday = date.toDateString() === now.toDateString();
+        
+        // Controlla se il messaggio è di ieri
+        const yesterday = new Date();
+        yesterday.setDate(now.getDate() - 1);
+        const isYesterday = date.toDateString() === yesterday.toDateString();
+
+        // Formatta orario (HH:MM)
+        const timeString = date.toLocaleTimeString("it-IT", {hour: "2-digit", minute: "2-digit" });
+
+        if (isToday) {
+          return `Oggi, ${timeString}`;
+        } else if (isYesterday) {
+          return `Ieri, ${timeString}`;
+        } else {
+          // Formatta data (GG/MM/AAAA)
+          const dateString = date.toLocaleDateString("it-IT");
+          return `${dateString}, ${timeString}`;
+        }
+
       },
 
       async sendMessage() {
@@ -214,7 +247,6 @@
   .messages li {
     display: flex;
     flex-direction: column;
-    align-items: flex-start;
     margin-bottom: 10px;
   }
   
@@ -226,17 +258,32 @@
     align-items: flex-start;
   }
   
+  .message-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    max-width: 70%;
+  }
+
   .message-bubble {
-    padding: 10px 15px;
-    border-radius: 15px;
-    max-width: 60%;
+    padding: 10px;
+    border-radius: 10px;
+    background-color: #f1f0f0;
     word-wrap: break-word;
+    display: inline-block;
+  }
+
+  .message-timestamp {
+    font-size: 0.75rem;
+    color: rgba(0, 0, 0, 0.6);
+    margin-top: 2px;
+    text-align: right;
+    padding-right: 5px;
   }
   
   .own-message .message-bubble {
     background-color: #007bff;
     color: white;
-    text-align: right;
     align-self: flex-end;
   }
   
@@ -245,6 +292,14 @@
     color: black;
     text-align: left;
     align-self: flex-start;
+  }
+
+  .own-message .message-wrapper {
+    align-items: flex-end;
+  }
+
+  .other-message .message-wrapper {
+    align-items: flex-start;
   }
   
   .message-meta {
