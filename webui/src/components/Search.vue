@@ -3,7 +3,7 @@
     <div class="modal-content">
       <span class="close" @click="$emit('close')">&times;</span>
       <slot name="header"></slot>
-      <input type="text" v-model="query" @input="searchUsers" placeholder="Search users..." />
+      <input type="text" v-model="query" @input="onInput" placeholder="Search users..." />
       <ul>
         <li v-for="destUser in users" :key="destUser.id" @click="selectUser(destUser)">
           {{ destUser.username }}
@@ -14,6 +14,8 @@
 </template>
 
 <script>
+import debounce from 'lodash.debounce';
+
 export default {
   props: {
     show: Boolean,
@@ -25,20 +27,28 @@ export default {
       users: []
     };
   },
-  methods: {
-    async searchUsers() {
-      if (this.query.length > 2) {
-        try {
-          // Effettua una richiesta GET al server per ottenere gli utenti in base alla ricerca effettuata
-          const url = `/profiles?username=${this.query}`;
-          let response = await this.$axios.get(url, { headers: { 'Authorization': `${sessionStorage.getItem('token')}` } });
-          // In base al risultato della GET assegna la lista di utenti filtrati
-          this.users = response.data;
-        } catch (error) {
-          console.error('Error searching users:', error);
-        }
+  watch: {
+    query(newQuery) {
+      if (newQuery.length > 2) {
+        this.debouncedSearch();
       } else {
         this.users = [];
+      }
+    }
+  },
+  created() {
+    this.debouncedSearch = debounce(this.searchUsers, 300);
+  },
+  methods: {
+    async searchUsers() {
+      try {
+        const url = `/profiles?username=${this.query}`;
+        let response = await this.$axios.get(url, {
+          headers: { 'Authorization': `${sessionStorage.getItem('token')}` }
+        });
+        this.users = response.data;
+      } catch (error) {
+        console.error('Error searching users:', error);
       }
     },
     selectUser(destUser) {

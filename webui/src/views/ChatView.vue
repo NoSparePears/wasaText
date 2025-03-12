@@ -54,7 +54,7 @@
       return {
         name: this.$route.query.name || "Unknown",
         destID: this.$route.query.destID,
-        avatar: this.$route.query.avatar || "default-avatar.png",
+        avatar: this.$route.query.avatar || "default_propic.jpg",
         messages: [], // Lista dei messaggi
         text: null, // Testo del messaggio da inviare
         photo: null, // Foto da inviare
