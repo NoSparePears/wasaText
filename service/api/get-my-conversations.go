@@ -2,6 +2,7 @@ package api
 
 import (
 	"encoding/json"
+	"errors"
 	"net/http"
 	"strconv"
 
@@ -15,29 +16,30 @@ import (
 
 func (rt *_router) getMyConversations(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
-	// parse and validate userID
+	// Parse and validate userID
 	userID, err := strconv.Atoi(ps.ByName("userID"))
 	if err != nil {
 		BadRequest(w, err, ctx, "Invalid userID")
 		return
 	}
 
-	// check user authorization
+	// Check user authorization
 	if userID != ctx.UserId {
-		Forbidden(w, err, ctx, "Unauthorized")
+		Forbidden(w, errors.New("user unauthorized"), ctx, "Unauthorized")
 		return
 	}
 
-	var dbConvos []structs.Conversation
-	// retrieve and validate convos data from db
-	dbConvos, err = rt.db.GetConversations(userID)
+	// Retrieve conversations
+	dbConvos, err := rt.db.GetConversations(userID)
 	if err != nil {
 		InternalServerError(w, err, ctx)
 		return
 	}
+
 	type response struct {
 		DbConvo  structs.Conversation `json:"conversation"`
 		DestUser structs.User         `json:"destUser"`
+		LastMsg  structs.Message      `json:"lastMessage"`
 	}
 
 	var convos []response
@@ -51,19 +53,26 @@ func (rt *_router) getMyConversations(w http.ResponseWriter, r *http.Request, ps
 		}
 		destUser.ID = destID
 
-		convo := response{
+		// Get last message (only if it exists)
+		lastMsg := structs.Message{Content: "No messages yet"}
+		if dbConvo.LastMsgID != 0 {
+			lastMsg, err = rt.db.GetLastMessage(dbConvo.GlobalConvoID, dbConvo.LastMsgID)
+			if err != nil {
+				InternalServerError(w, err, ctx)
+				return
+			}
+		}
+
+		convos = append(convos, response{
 			DbConvo:  dbConvo,
 			DestUser: destUser,
-		}
-		convos = append(convos, convo)
+			LastMsg:  lastMsg,
+		})
 	}
 
-	// response
+	// Send response
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	if err = json.NewEncoder(w).Encode(convos); err != nil {
-		ctx.Logger.WithError(err).Error("Error encoding response")
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
+	if err := json.NewEncoder(w).Encode(convos); err != nil {
+		InternalServerError(w, err, ctx)
 	}
 }

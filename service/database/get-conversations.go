@@ -5,7 +5,7 @@ import (
 	"wasaText/service/structs"
 )
 
-var query_GETCONVERSATIONS = `SELECT destUserID FROM Conversation WHERE userID = ?;`
+var query_GETCONVERSATIONS = `SELECT destUserID, globalConvoID, lastMsgID FROM Conversation WHERE userID = ?;`
 
 func (db *appdbimpl) GetConversations(user_id int) ([]structs.Conversation, error) {
 	// get conversations from database
@@ -19,7 +19,7 @@ func (db *appdbimpl) GetConversations(user_id int) ([]structs.Conversation, erro
 
 	for rows.Next() {
 		var convo structs.Conversation
-		err = rows.Scan(&convo.DestUserID)
+		err = rows.Scan(&convo.DestUserID, &convo.GlobalConvoID, &convo.LastMsgID)
 		if err != nil {
 			return nil, err
 		}

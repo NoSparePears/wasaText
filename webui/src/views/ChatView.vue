@@ -167,7 +167,7 @@
           } else {
             throw new Error('Request failed with status: ${response.status}');
           }     
-          const response = await this.$axios.post(`/profiles/${userID}/conversations/${destUser.id}/messages`, {content: this.selectedMessage.content}, {
+          const response = await this.$axios.post(`/profiles/${userID}/conversations/${destUser.id}/messages`, {content: "forwarded: "+this.selectedMessage.content}, {
             headers: { 'Authorization': token }
           });
           this.toggleSearchModal();

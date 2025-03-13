@@ -5,7 +5,8 @@ type Message struct {
 	ConvoID       int    `json:"convoID"`
 	SenderID      int    `json:"senderID"`
 	Content       string `json:"content"`
+	IsPhoto       int    `json:"isPhoto"`
 	Timestamp     string `json:"timestamp"` // Formato `RFC3339` (ISO 8601)
-	CheckSent     int    `json:"sent"`
-	CheckReceived int    `json:"received"`
+	CheckSent     bool   `json:"sent"`
+	CheckReceived bool   `json:"received"`
 }

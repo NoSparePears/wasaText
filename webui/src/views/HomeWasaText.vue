@@ -40,8 +40,11 @@
       <li v-for="conversation in conversations" :key="conversation.DestUserID" @click="openChat(conversation)" class="conversation-item">
         <img :src="conversation.destUser.photo" alt="User avatar" class="user-photo"/>
         
-        <span class="username">{{ conversation.destUser.username }}</span>
-        <span class="last-message">{{ conversation.lastMessage }}</span>
+        <div class="chat-preview">
+          <span class="username">{{ conversation.destUser.username }}</span>
+          <span class="last-message-timestamp">{{ formatTimestamp(conversation.lastMessage.timestamp) }}</span>
+          <span class="last-message">{{ conversation.lastMessage.content }}</span>
+        </div>
       </li>
     </ul>
   </div>
@@ -145,7 +148,35 @@ export default {
         this.errormsg = error.response?.data?.message || 'Error opening chat';
         console.error('Error opening chat:', error);
       }
-    }
+    },
+    formatTimestamp(timestamp) {
+        if (!timestamp) return "";
+
+        const date = new Date(timestamp);
+        const now = new Date();
+
+        // Controlla se il messaggio è di oggi
+        const isToday = date.toDateString() === now.toDateString();
+        
+        // Controlla se il messaggio è di ieri
+        const yesterday = new Date();
+        yesterday.setDate(now.getDate() - 1);
+        const isYesterday = date.toDateString() === yesterday.toDateString();
+
+        // Formatta orario (HH:MM)
+        const timeString = date.toLocaleTimeString("it-IT", {hour: "2-digit", minute: "2-digit" });
+
+        if (isToday) {
+          return `Oggi, ${timeString}`;
+        } else if (isYesterday) {
+          return `Ieri, ${timeString}`;
+        } else {
+          // Formatta data (GG/MM/AAAA)
+          const dateString = date.toLocaleDateString("it-IT");
+          return `${dateString}, ${timeString}`;
+        }
+
+    },
   },
   mounted() {
     // Se l'utente non è loggato, reindirizza alla pagina di login
@@ -234,9 +265,34 @@ export default {
   margin-right: 10px;
   object-fit: cover;
 }
+.chat-preview {
+    display: flex;
+    align-items: center;
+    padding: 10px 0;
+    cursor: pointer;
+    transition: background 0.3s ease-in-out;
+}
 
 .username {
-  font-size: 16px;
-  font-weight: 500;
+    font-weight: bold;
+    color: #333;
+    font-size: 16px;
+    margin-right: 10px;
 }
+
+.last-message-timestamp {
+    font-size: 14px;
+    color: #555;
+    margin-right: 10px;
+}
+
+.last-message {
+    font-size: 14px;
+    color: #555;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px; /* Optional: Adjust based on available space */
+}
+
 </style>

@@ -16,7 +16,7 @@ var sql_CONVOTABLE = `CREATE TABLE IF NOT EXISTS Conversation (
   userID INTEGER NOT NULL,
   destUserID INTEGER,
   globalConvoID INTEGER NOT NULL,
-  lastMsgId INTEGER,
+  lastMsgID INTEGER,
   delByUser BOOLEAN DEFAULT FALSE, 
   visible BOOLEAN DEFAULT TRUE,
 
@@ -31,7 +31,6 @@ var sql_CONVOTABLE = `CREATE TABLE IF NOT EXISTS Conversation (
 var sql_GROUPMEMBERTABLE = `CREATE TABLE IF NOT EXISTS GroupMember (
   groupID INTEGER NOT NULL,
   userID INTEGER NOT NULL,
-  role TEXT DEFAULT 'member',
 
   CONSTRAINT fk_group FOREIGN KEY (groupID) REFERENCES GlovalConversation(globalConvoID),
   CONSTRAINT fk_user FOREIGN KEY (userID) REFERENCES User(userID),
@@ -45,7 +44,7 @@ var sql_MSGTABLE = `CREATE TABLE IF NOT EXISTS Message (
   senderID NOT NULL,
   content TEXT NOT NULL,
   timestamp DATETIME DEFAULT CURRENT_TIMESTAMP,
-  
+  isPhoto INTEGER DEFAULT 0,
   CONSTRAINT fk_convo FOREIGN KEY (convoID) REFERENCES GlobalConversation(globalConvoID),
   CONSTRAINT fk_user FOREIGN KEY (senderID) REFERENCES User(userID),
   

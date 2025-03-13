@@ -75,6 +75,8 @@ type AppDatabase interface {
 
 	GetMsgOwnerID(msgID int) (int, error)
 
+	GetLastMessage(convoID int, msgID int) (structs.Message, error)
+
 	// It sends a Message
 	InsertMessage(msg structs.Message, recID int) (structs.Message, error)
 
