@@ -1,17 +1,17 @@
 <template>
   <div class="home-view">
     <header>
-      <h1>Chat</h1>
+      
       <div class="header-buttons">
-        <button @click="toggleSearchModal">
+        <button @click="toggleSearchModal" class="button">
           <svg class="feather"><use href="/feather-sprite-v4.29.0.svg#edit"></use></svg>
           New Chat
         </button>
-        <button @click="toggleGroupModal">
+        <button @click="toggleGroupModal" class="button">
           <svg class="feather"><use href="/feather-sprite-v4.29.0.svg#edit"></use></svg>
           New Group
         </button>
-        <button @click="getConversations">
+        <button @click="getConversations" class="button">
           <svg class="feather"><use href="/feather-sprite-v4.29.0.svg#refresh-cw"></use></svg>
           Refresh
         </button>
@@ -36,9 +36,12 @@
     <div v-if="conversations.length === 0">
       Create new chat
     </div>
-    <ul v-else>
-      <li v-for="conversation in conversations" :key="conversation.DestUserID" @click="openChat(conversation)">
-        {{ conversation.destUser.username}}
+    <ul v-else class ="conversation-list">
+      <li v-for="conversation in conversations" :key="conversation.DestUserID" @click="openChat(conversation)" class="conversation-item">
+        <img :src="conversation.destUser.photo" alt="User avatar" class="user-photo"/>
+        
+        <span class="username">{{ conversation.destUser.username }}</span>
+        <span class="last-message">{{ conversation.lastMessage }}</span>
       </li>
     </ul>
   </div>
@@ -46,10 +49,12 @@
 
 <script>
 import Search from '@/components/Search.vue';
+import Group from '@/components/Group.vue';
 
 export default {
   components: {
-    Search
+    Search,
+    Group
   },
   data() {
     return {
@@ -167,29 +172,71 @@ export default {
 };
 </script>
 
-<style>
-.modal {
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+<style scoped>
+.header-buttons {
   display: flex;
+  gap: 10px;
   justify-content: center;
+  padding: 10px;
+}
+
+.button {
+  display: flex;
   align-items: center;
-}
-.modal-content {
-  background: white;
-  padding: 20px;
-  border-radius: 8px;
-  text-align: center;
-}
-.close {
+  gap: 8px;
+  background: #0088cc; /* Telegram blue */
+  color: white;
+  font-size: 14px;
+  font-weight: bold;
+  border: none;
+  border-radius: 50px; /* Fully rounded */
+  padding: 10px 15px;
   cursor: pointer;
-  font-size: 24px;
-  position: absolute;
-  right: 10px;
-  top: 10px;
+  transition: background 0.3s ease, transform 0.1s ease-in-out;
+  box-shadow: 0px 4px 6px rgba(0, 136, 204, 0.3);
+}
+
+.button:hover {
+  background: #007bb5; /* Slightly darker on hover */
+}
+
+.button:active {
+  transform: scale(0.95);
+}
+
+
+.conversation-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.conversation-item {
+  display: flex;
+  align-items: center;
+  padding: 10px;
+  border-radius: 10px;
+  background: #f1f1f1;
+  margin: 5px 0;
+  cursor: pointer;
+  transition: background 0.3s;
+}
+
+.conversation-item:hover {
+  background: #0088cc;
+  color: white;
+}
+
+.user-photo {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  margin-right: 10px;
+  object-fit: cover;
+}
+
+.username {
+  font-size: 16px;
+  font-weight: 500;
 }
 </style>
