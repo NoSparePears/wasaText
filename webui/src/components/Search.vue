@@ -3,10 +3,21 @@
     <div class="modal-content">
       <span class="close" @click="$emit('close')">&times;</span>
       <slot name="header"></slot>
-      <input type="text" v-model="query" @input="onInput" placeholder="Search users..." />
-      <ul>
-        <li v-for="destUser in users" :key="destUser.id" @click="selectUser(destUser)">
-          {{ destUser.username }}
+      <input 
+        type="text" 
+        v-model="query" 
+        @input="onInput" 
+        placeholder="Search users..." 
+        class="search-input"
+      />
+      <ul class="user-list">
+        <li 
+          v-for="destUser in users" 
+          :key="destUser.id" 
+          @click="selectUser(destUser)"
+          class="user-item"
+        >
+          <span v-html="highlightMatch(destUser.username)"></span>
         </li>
       </ul>
     </div>
@@ -53,111 +64,86 @@ export default {
     },
     selectUser(destUser) {
       this.$emit('user-selected', destUser);
+    },
+    highlightMatch(username) {
+      if (!this.query) return username;
+      const regex = new RegExp(`(${this.query})`, 'gi');
+      return username.replace(regex, '<span class="highlight">$1</span>');
     }
   }
 };
 </script>
 
-<style>
-.custom-link {
-  color: inherit;
-  /* This will make the link have the same color as the surrounding text */
-  text-decoration: none;
-  /* This will remove the underline */
-}
-
-.modal-mask {
+<style scoped>
+.modal {
   position: fixed;
-  z-index: 9998;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
-  display: table;
-  transition: opacity 0.3s ease;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.modal-wrapper {
-  display: table-cell;
-  vertical-align: middle;
+.modal-content {
+  background: #ffffff;
+  border-radius: 20px;
+  padding: 20px;
+  width: 300px;
+  box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.1);
+  text-align: center;
+  animation: fadeIn 0.3s ease-in-out;
 }
 
-.modal-container {
-  width: 350px;
-  margin: 0px auto;
-  background-color: #fff;
-  border-radius: 2px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.33);
-  transition: all 0.3s ease;
+.close {
+  float: right;
+  font-size: 24px;
+  cursor: pointer;
+  color: #0088cc;
 }
-
-.modal-header {
-  height: 70px;
-  padding: 20px 15px 10px 15px;
-}
-
-.modal-header h3 {
-  margin-top: 0;
-  font-size: 25px;
-  color: #42b983;
-}
-
-.modal-header button {
-  color: rgb(86, 86, 86);
-  background: none;
-  border: none;
-  padding: 5px;
-  line-height: 12px;
-  font-size: 15px;
-}
-
-.modal-header button svg {
-  width: 20px;
-  height: 20px;
-}
-
 
 .search-input {
-  padding: 0 15px;
-}
-
-.search-input input {
-  height: 30px;
   width: 100%;
+  padding: 10px;
+  border-radius: 15px;
+  border: 1px solid #cccccc;
   outline: none;
-  border-radius: 3px;
-  border: 1px solid rgb(179, 179, 179)
+  transition: border 0.3s;
 }
 
-.search-results {
-  font-size: 15px;
-  padding: 10px 15px;
-  border-bottom: 1px solid #eee;
+.search-input:focus {
+  border: 1px solid #0088cc;
+}
+
+.user-list {
+  list-style: none;
+  padding: 0;
+  margin: 10px 0 0;
+}
+
+.user-item {
+  padding: 10px;
+  background: #f1f1f1;
+  border-radius: 10px;
+  margin: 5px 0;
   cursor: pointer;
-  max-height: 200px;
-  overflow-y: scroll;
+  transition: background 0.3s;
 }
 
-.modal-default-button {
-  float: right;
+.user-item:hover {
+  background: #0088cc;
+  color: white;
 }
 
-.username-form {
-  display: flex;
-  flex-direction: column;
-  padding: 0 15px;
+.highlight {
+  background-color: yellow;
+  font-weight: bold;
 }
 
-.username-form input {
-  margin-bottom: 10px;
-  margin-top: 5px;
-  outline: none;
-  border-radius: 3px;
-  border: 1px solid rgb(179, 179, 179)
-}
-
-.username-form button {
-  margin-bottom: 15px;
+@keyframes fadeIn {
+  from { opacity: 0; transform: scale(0.9); }
+  to { opacity: 1; transform: scale(1); }
 }
 </style>
