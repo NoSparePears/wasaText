@@ -36,6 +36,17 @@ func (rt *_router) deleteMessage(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 
+	ownerID, err := rt.db.GetMsgOwnerID(msgID)
+	if err != nil {
+		InternalServerError(w, err, ctx)
+		return
+	}
+
+	if ownerID != senderID {
+		Forbidden(w, err, ctx, "Unauthorized")
+		return
+	}
+
 	convoID, err := rt.db.GetConvoID(senderID, destID)
 	if err != nil {
 		InternalServerError(w, err, ctx)
