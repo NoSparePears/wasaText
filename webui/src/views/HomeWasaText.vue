@@ -7,23 +7,17 @@
           <svg class="feather"><use href="/feather-sprite-v4.29.0.svg#edit"></use></svg>
           New Chat
         </button>
-        <button @click="toggleGroupModal" class="button">
-          <svg class="feather"><use href="/feather-sprite-v4.29.0.svg#edit"></use></svg>
-          New Group
-        </button>
         <button @click="getConversations" class="button">
           <svg class="feather"><use href="/feather-sprite-v4.29.0.svg#refresh-cw"></use></svg>
           Refresh
         </button>
+        <button @click="toggleGroupModal" class="button">
+          <svg class="feather"><use href="/feather-sprite-v4.29.0.svg#edit"></use></svg>
+          New Group
+        </button>
       </div>
     </header>
     
-    <!-- Modal for creating a new group -->
-    <Group :show="groupModalVisible" @close="toggleGroupModal" title="search">
-      <template v-slot:header>
-        <h3>Select users</h3>
-      </template>
-    </Group>
     <!-- Modal for searching users to start a new conversation -->
     <Search :show="searchModalVisible" @close="toggleSearchModal" @user-selected="createNewChat" title="search">
       <template v-slot:header>
@@ -33,37 +27,85 @@
 
     <ErrorMsg v-if="errormsg" :msg="errormsg"></ErrorMsg>
 
-    <div v-if="conversations.length === 0">
-      Create new chat
+    <!-- Both Chat List -->
+    <div class="chat-container">
+      <div class="chat-section">
+        <h3>Private Chats</h3>
+        <ul v-if="conversations.length>0" class="conversation-list">
+          <li v-for="conversation in conversations" :key="conversation.DestUserID" @click="openChat(conversation)" class="conversation-item">
+    
+            <img :src="conversation.destUser.photo" alt="User avatar" class="user-photo"/>
+            <div class="chat-preview">
+              <span class="username">{{ conversation.destUser.username }}</span>
+              <span class="last-message-timestamp">{{ formatTimestamp(conversation.lastMessage.timestamp) }}</span>
+              <span class="last-message">{{ conversation.lastMessage.content }}</span>
+            </div>
+
+          </li>
+        </ul>
+        <div v-else>No private chats. Start a new one!</div>
+      </div>
+
+      <div class="group-section">
+        <h3>Groups</h3>
+        <ul v-if="groups.lenght > 0" class="group-list">
+          <li v-for="group in groups" :key="group.GlobalConvoID" @click="openGroup(group)" class="group-item">
+            <img :src="group.GroupPropic64" alt="Group avatar" class="group-photo"/>
+            <div class="group-preview">
+              <span class="group-name">{{ group.GroupName }}</span>
+            </div>
+          </li>
+        </ul>
+        <div v-else>No groups. Create a new one!</div>
+      </div>
+    
+
+      
     </div>
-    <ul v-else class ="conversation-list">
-      <li v-for="conversation in conversations" :key="conversation.DestUserID" @click="openChat(conversation)" class="conversation-item">
-        <img :src="conversation.destUser.photo" alt="User avatar" class="user-photo"/>
+    <!-- Modal for creating a new group -->
+    <div v-if="groupModalVisible" class="modal">
+      <div class="modal-content">
+        <h3>Create New Group</h3>
+        <input v-model="groupName" type="text" placeholder="Enter group name..." class="input-field"/>
+        <input type="file" @change="handleImageUpload" accept="image/*" class="file-input" />
+        <button @click="useDefaultImage" class="default-image-button">Use Default Image</button>
         
-        <div class="chat-preview">
-          <span class="username">{{ conversation.destUser.username }}</span>
-          <span class="last-message-timestamp">{{ formatTimestamp(conversation.lastMessage.timestamp) }}</span>
-          <span class="last-message">{{ conversation.lastMessage.content }}</span>
-        </div>
-      </li>
-    </ul>
+        <Search :show="searchModalVisible" @close="toggleSearchModal" @user-selected="addUserToGroup" title="search">
+          <template v-slot:header>
+            <h3>Select Users</h3>
+          </template>
+        </Search>
+        
+        <ul>
+          <li v-for="user in selectedUsers" :key="user.id">
+            {{ user.username }}
+          </li>
+        </ul>
+        
+        <button @click="toggleSearchModal" class="button">Add Users</button>
+        <button @click="createGroup" class="button">Done</button>
+        <button @click="toggleGroupModal" class="button close-button">Cancel</button>
+      </div>
+    </div>
   </div>
 </template>
 
 <script>
 import Search from '@/components/Search.vue';
-import Group from '@/components/Group.vue';
 
 export default {
   components: {
-    Search,
-    Group
+    Search
   },
   data() {
     return {
       searchModalVisible: false,
       groupModalVisible: false,
       conversations: [],
+      groupName: '',
+      groupImage: null,
+      selectedUsers: [],
+      groups: [],
       errormsg: ''
     };
   },
@@ -113,23 +155,54 @@ export default {
           });
   
         if (!this.conversations) this.conversations = [];
-          this.conversations.push(response.data);
-      
-          this.openChat(response.data);
-          this.toggleSearchModal();
+        this.conversations.push(response.data);
+    
+        this.openChat(response.data);
+        this.toggleSearchModal();
   
-        } catch (error) {
-          this.errormsg = error.response?.data?.message || 'Error creating new chat';
-          console.error('Error creating new chat:', error);
+      } catch (error) {
+        this.errormsg = error.response?.data?.message || 'Error creating new chat';
+        console.error('Error creating new chat:', error);
+      }
+      this.$router.push({
+        path: `/home/${destUser.id}`,
+        query: {
+            name: destUser.username,
+            destID: destUser.id,
+            avatar: destUser.photo
         }
+      })
+    },
+    async createGroup() {
+      if (!this.groupName || this.selectedUsers.length === 0) {
+        this.errormsg = 'Group name and at least one user are required.';
+        return;
+      }
+      this.errormsg = '';
+      const userID = sessionStorage.getItem('id');
+      const token = sessionStorage.getItem('token');
+      try {
+        let response = await this.$axios.post(`/profiles/${userID}/groups`, {name: this.groupName, photo: this.groupImage, members: this.selectedUsers}, { 
+          headers: { 'Authorization': token } 
+          });
+
+        this.groups.push(response.data);  
+        
+        this.toggleGroupModal();  
         this.$router.push({
-          path: `/home/${destUser.id}`,
-          query: {
-              name: destUser.username,
-              destID: destUser.id,
-              avatar: destUser.photo
-          }
-        })
+        path: `/home/groups/${response.data.group.groupID}`,
+        query: {
+            name: response.data.group.groupName,
+            groupID: response.data.group.groupID,
+            avatar: response.data.photo,
+            members: response.data.members
+        }
+      })
+      } catch (error) {
+        
+      }
+      
+      
     },
     async openChat(conversation) {
       console.log('Opening chat:');
@@ -149,33 +222,43 @@ export default {
         console.error('Error opening chat:', error);
       }
     },
+    handleImageUpload(event) {
+      this.groupImage = event.target.files[0];
+    },
+    useDefaultImage() {
+      this.groupImage = 'default-group-image.jpg';
+    },
+    addUserToGroup(user) {
+      if (!this.selectedUsers.find(u => u.id === user.id)) {
+        this.selectedUsers.push(user);
+      }
+    },
     formatTimestamp(timestamp) {
-        if (!timestamp) return "";
+      if (!timestamp) return "";
 
-        const date = new Date(timestamp);
-        const now = new Date();
+      const date = new Date(timestamp);
+      const now = new Date();
 
-        // Controlla se il messaggio è di oggi
-        const isToday = date.toDateString() === now.toDateString();
+      // Controlla se il messaggio è di oggi
+      const isToday = date.toDateString() === now.toDateString();
         
-        // Controlla se il messaggio è di ieri
-        const yesterday = new Date();
-        yesterday.setDate(now.getDate() - 1);
-        const isYesterday = date.toDateString() === yesterday.toDateString();
+      // Controlla se il messaggio è di ieri
+      const yesterday = new Date();
+      yesterday.setDate(now.getDate() - 1);
+      const isYesterday = date.toDateString() === yesterday.toDateString();
 
-        // Formatta orario (HH:MM)
-        const timeString = date.toLocaleTimeString("it-IT", {hour: "2-digit", minute: "2-digit" });
+      // Formatta orario (HH:MM)
+      const timeString = date.toLocaleTimeString("it-IT", {hour: "2-digit", minute: "2-digit" });
 
-        if (isToday) {
-          return `Oggi, ${timeString}`;
-        } else if (isYesterday) {
-          return `Ieri, ${timeString}`;
-        } else {
-          // Formatta data (GG/MM/AAAA)
-          const dateString = date.toLocaleDateString("it-IT");
-          return `${dateString}, ${timeString}`;
-        }
-
+      if (isToday) {
+        return `Oggi, ${timeString}`;
+      } else if (isYesterday) {
+        return `Ieri, ${timeString}`;
+      } else {
+        // Formatta data (GG/MM/AAAA)
+        const dateString = date.toLocaleDateString("it-IT");
+        return `${dateString}, ${timeString}`;
+      }
     },
   },
   mounted() {
@@ -241,8 +324,16 @@ export default {
   padding: 0;
   margin: 0;
 }
+.chat-container {
+  display: flex;
+  justify-content: space-between;
+  padding: 20px;
+}
+.chat-section, .group-section {
+  width: 48%;
+}
 
-.conversation-item {
+.conversation-item, .group-item {
   display: flex;
   align-items: center;
   padding: 10px;
@@ -253,12 +344,12 @@ export default {
   transition: background 0.3s;
 }
 
-.conversation-item:hover {
+.conversation-item:hover, .group-item:hover {
   background: #0088cc;
   color: white;
 }
 
-.user-photo {
+.user-photo, .group-photo {
   width: 40px;
   height: 40px;
   border-radius: 50%;
@@ -293,6 +384,33 @@ export default {
     overflow: hidden;
     text-overflow: ellipsis;
     max-width: 200px; /* Optional: Adjust based on available space */
+}
+.modal {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+.modal-content {
+  background: white;
+  padding: 20px;
+  border-radius: 10px;
+  width: 400px;
+  text-align: center;
+}
+.input-field, .file-input {
+  display: block;
+  width: 100%;
+  margin: 10px 0;
+  padding: 8px;
+}
+.close-button {
+  background: red;
 }
 
 </style>

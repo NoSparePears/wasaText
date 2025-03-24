@@ -404,6 +404,24 @@ paths:
     parameters:
       - $ref: "#/components/parameters/user_id"
       - $ref: "#/components/parameters/group_id"
+    get:
+      tags: ["Group"]
+      summary: open existing group
+      operationId: getGroup
+      description: open an already created group
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: group opened succesfully
+          content:
+            plain/text:
+              schema: { $ref: "#/components/schemas/Group" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+
     delete:
       tags: ["Group"]
       summary: user leaves group
@@ -634,7 +652,7 @@ components:
         convo_id: { $ref: "#/components/schemas/Identificator" }
         user_id: { $ref: "#/components/schemas/Identificator" }
     Group:
-      description: group of users
+      description: group 
       type: object 
       properties:
         g_id: { $ref: "#/components/schemas/Identificator"}

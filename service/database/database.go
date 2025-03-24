@@ -50,6 +50,8 @@ type AppDatabase interface {
 	// Search user by username
 	SearchUser(username string) (structs.User, error)
 
+	SearchUserID(id int) (structs.User, error)
+
 	SearchUsers(search string) ([]structs.User, error)
 
 	GetUsernameByID(id int) (structs.User, error)
@@ -94,6 +96,9 @@ type AppDatabase interface {
 
 	// It creates a group
 	CreateGroup(groupName string, userID int) (structs.Group, error)
+
+	// It returns convo information for the group
+	GetGroupConvo(groupID int) (structs.Group, error)
 
 	// It adds another user to a group
 	AddToGroup(user_id int, g_id int) error

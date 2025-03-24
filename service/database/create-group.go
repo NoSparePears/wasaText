@@ -20,12 +20,25 @@ func (db *appdbimpl) CreateGroup(groupName string, userID int) (structs.Group, e
 	group.GlobalConvoID = int(globalConvoID64)
 	group.GroupName = groupName
 
-	admin, err := db.c.Exec("INSERT INTO GroupMember (groupID, userID, role) VALUES (?, ?. ?);", group.GlobalConvoID, userID, "admin")
+	creator, err := db.c.Exec("INSERT INTO GroupMember (groupID, userID) VALUES (?, ?);", group.GlobalConvoID, userID)
 	if err != nil {
 		return structs.Group{}, err
 	}
 	// Check if any rows were affected
-	rowsAffected, err := admin.RowsAffected()
+	rowsAffected, err := creator.RowsAffected()
+	if err != nil {
+		return structs.Group{}, errors.New("could not verify group membership insertion: " + err.Error())
+	}
+	if rowsAffected == 0 {
+		return structs.Group{}, errors.New("no rows were inserted, possible issue with groupID or userID")
+	}
+
+	convoGroup, err := db.c.Exec("INSERT INTO Conversation (userID, destUserID, globalConvoID, lastMsgId) VALUES (?, ?, ?, ?);", userID, 0, group.GlobalConvoID, 0)
+	if err != nil {
+		return structs.Group{}, err
+	}
+	// Check if any rows were affected
+	rowsAffected, err = convoGroup.RowsAffected()
 	if err != nil {
 		return structs.Group{}, errors.New("could not verify group membership insertion: " + err.Error())
 	}

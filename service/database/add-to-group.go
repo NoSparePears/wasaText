@@ -27,6 +27,19 @@ func (db *appdbimpl) AddToGroup(userID int, groupID int) error {
 		return errors.New("no rows were inserted, possible issue with groupID or userID")
 	}
 
+	convoGroup, err := db.c.Exec("INSERT INTO Conversation (userID, destUserID, globalConvoID, lastMsgId) VALUES (?, ?, ?, ?);", userID, 0, groupID, 0)
+	if err != nil {
+		return err
+	}
+	// Check if any rows were affected
+	rowsAffected, err = convoGroup.RowsAffected()
+	if err != nil {
+		return errors.New("could not verify group membership insertion: " + err.Error())
+	}
+	if rowsAffected == 0 {
+		return errors.New("no rows were inserted, possible issue with groupID or userID")
+	}
+
 	return nil
 
 }
