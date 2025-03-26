@@ -13,7 +13,7 @@ var (
 )
 
 // SendMessage inserisce un messaggio in una conversazione e aggiorna lo stato della chat.
-func (db *appdbimpl) InsertMessage(msg structs.Message, recID int) (structs.Message, error) {
+func (db *appdbimpl) InsertMessage(msg structs.Message) (structs.Message, error) {
 	// Inserisce il messaggio nel database
 	result, err := db.c.Exec(query_INSERT_MESSAGE, msg.ConvoID, msg.SenderID, msg.Content)
 	if err != nil {

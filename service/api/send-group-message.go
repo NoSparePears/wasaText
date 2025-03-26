@@ -11,9 +11,9 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// rt.router.POST("/profiles/:userID/conversations/:destID/messages", rt.wrap(rt.sendMessage, true))
+// 	rt.router.POST("/profiles/:userID/conversations/:groupID/messages", rt.wrap(rt.sendGroupMessage, true))
 
-func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
+func (rt *_router) sendGroupMessage(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	// parse the sender of the message
 	sendID, err := strconv.Atoi(ps.ByName("userID"))
 	if err != nil {
@@ -26,9 +26,9 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 	// parse the receiver's id
-	recID, err := strconv.Atoi(ps.ByName("destID"))
+	groupID, err := strconv.Atoi(ps.ByName("groupID"))
 	if err != nil {
-		BadRequest(w, err, ctx, "Invalid destID")
+		BadRequest(w, err, ctx, "Invalid groupID")
 		return
 	}
 
@@ -55,12 +55,7 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 	}
 
 	msg.SenderID = sendID
-	id, err := rt.db.GetConvoID(sendID, recID)
-	if err != nil {
-		InternalServerError(w, err, ctx)
-		return
-	}
-	msg.ConvoID = id
+	msg.ConvoID = groupID
 
 	// insert message inside db
 	dbMsg, err := rt.db.InsertMessage(msg)

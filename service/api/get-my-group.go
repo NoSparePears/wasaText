@@ -42,10 +42,11 @@ func (rt *_router) getGroup(w http.ResponseWriter, r *http.Request, ps httproute
 	}
 
 	type response struct {
-		Convo structs.Group `json:"conversation"`
+		Group   structs.Group   `json:"conversation"`
+		LastMsg structs.Message `json:"lastMessage"`
 	}
 	resp := response{
-		Convo: dbGroupConvo,
+		Group: dbGroupConvo,
 	}
 	// SCEGLI SE CREARE LA CONVO TABLE PER OGNI UTENTE ALL INTERNO DI ADDTOGROUP (LATO DB) OPPURE FAI LE CHIAMATE QUI
 	// set response header for json content

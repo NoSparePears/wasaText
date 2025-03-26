@@ -58,8 +58,9 @@ func (rt *_router) forwardMessage(w http.ResponseWriter, r *http.Request, ps htt
 		return
 	}
 	msgToForward.SenderID = userID
+	msgToForward.ConvoID = convo.GlobalConvoID
 
-	finalMsg, err := rt.db.InsertMessage(msgToForward, convo.GlobalConvoID)
+	finalMsg, err := rt.db.InsertMessage(msgToForward)
 	if err != nil {
 		InternalServerError(w, err, ctx)
 		return

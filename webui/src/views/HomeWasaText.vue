@@ -29,6 +29,7 @@
 
     <!-- Both Chat List -->
     <div class="chat-container">
+
       <div class="chat-section">
         <h3>Private Chats</h3>
         <ul v-if="conversations.length>0" class="conversation-list">
@@ -48,11 +49,11 @@
 
       <div class="group-section">
         <h3>Groups</h3>
-        <ul v-if="groups.lenght > 0" class="group-list">
-          <li v-for="group in groups" :key="group.GlobalConvoID" @click="openGroup(group)" class="group-item">
-            <img :src="group.GroupPropic64" alt="Group avatar" class="group-photo"/>
+        <ul v-if="groups.length > 0" class="group-list">
+          <li v-for="group in groups" :key="group.group.groupID" @click="openGroup(group.group)" class="group-item">
+            <img :src="group.group.photo" alt="Group avatar" class="group-photo"/>
             <div class="group-preview">
-              <span class="group-name">{{ group.GroupName }}</span>
+              <span class="group-name">{{ group.group.groupName }}</span>
             </div>
           </li>
         </ul>
@@ -143,7 +144,6 @@ export default {
         // Check if the conversation with destUser already exists
         const existingConvo = this.conversations.find(conversation => conversation.destUser.id === destUser.id);
         if (existingConvo) {
-          console.log('Existing conversation found:', existingConvo);
           this.openChat(existingConvo);
           return;
         }
@@ -164,14 +164,21 @@ export default {
         this.errormsg = error.response?.data?.message || 'Error creating new chat';
         console.error('Error creating new chat:', error);
       }
-      this.$router.push({
-        path: `/home/${destUser.id}`,
-        query: {
-            name: destUser.username,
-            destID: destUser.id,
-            avatar: destUser.photo
-        }
-      })
+      
+    },
+    async getGroups() {
+      this.errormsg = '';
+      const userID = sessionStorage.getItem('id');
+      const token = sessionStorage.getItem('token');
+      try {
+        let response = await this.$axios.get(`/profiles/${userID}/groups`, { 
+          headers: { 'Authorization': token } });
+        this.groups = response.data;
+        if (!this.groups) this.groups = [];
+      } catch (error) {
+        this.errormsg = error.response?.data?.message || 'Error fetching conversations';
+        console.error('Error fetching conversations:', error);
+      }
     },
     async createGroup() {
       if (!this.groupName || this.selectedUsers.length === 0) {
@@ -185,19 +192,13 @@ export default {
         let response = await this.$axios.post(`/profiles/${userID}/groups`, {name: this.groupName, photo: this.groupImage, members: this.selectedUsers}, { 
           headers: { 'Authorization': token } 
           });
-
-        this.groups.push(response.data);  
         
+        if (!this.groups) this.groups = [];
+        this.groups.push(response.data.group);  
+        
+        this.openGroup(response.data.group);
         this.toggleGroupModal();  
-        this.$router.push({
-        path: `/home/groups/${response.data.group.groupID}`,
-        query: {
-            name: response.data.group.groupName,
-            groupID: response.data.group.groupID,
-            avatar: response.data.photo,
-            members: response.data.members
-        }
-      })
+        
       } catch (error) {
         
       }
@@ -215,6 +216,25 @@ export default {
             name: conversation.destUser.username,
             destID: conversation.destUser.id,
             avatar: conversation.destUser.photo
+          }
+        });
+      } catch (error) {
+        this.errormsg = error.response?.data?.message || 'Error opening chat';
+        console.error('Error opening chat:', error);
+      }
+    },
+    async openGroup(group) {
+      console.log('Opening group:');
+      const userID = sessionStorage.getItem('id');
+      const token = sessionStorage.getItem('token');
+      try {
+        this.$router.push({
+          path: `/home/groups/${group.groupID}`,
+          query: {
+            name: group.groupName,
+            groupID: group.groupID,
+            avatar: group.photo,
+            members: JSON.stringify(group.members) // Convert to JSON string
           }
         });
       } catch (error) {
@@ -262,27 +282,32 @@ export default {
     },
   },
   mounted() {
-    // Se l'utente non è loggato, reindirizza alla pagina di login
-    if (!sessionStorage.getItem('token')) {
-      this.$router.push("/");
-      return;
-    }
-    this.getConversations();
-    this.intervalId = setInterval(async () => {
-      clearInterval(this.intervalId);
-      await this.getConversations();
-      this.intervalId = setInterval(this.getConversations, 1000);
-    }, 1000);
-    
-  },
-  beforeUnmount() {
-    // Pulisci l'intervallo quando il componente viene distrutto
-    if (this.intervalId) {
-      clearInterval(this.intervalId);
-    }
-    
-    
+  // If user is not logged in, redirect to login page
+  if (!sessionStorage.getItem('token')) {
+    this.$router.push("/");
+    return;
   }
+
+  this.getConversations();
+  this.getGroups();
+
+  // Set up periodic fetching for conversations
+  this.conversationInterval = setInterval(() => {
+    this.getConversations();
+  }, 1000);
+
+  // Set up periodic fetching for groups
+  this.groupInterval = setInterval(() => {
+    this.getGroups();
+  }, 1000);
+},
+
+beforeUnmount() {
+  // Clear intervals when component is destroyed
+  clearInterval(this.conversationInterval);
+  clearInterval(this.groupInterval);
+}
+
 };
 </script>
 

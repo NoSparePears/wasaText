@@ -317,8 +317,6 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Forbidden" }
         "500": { $ref: "#/components/responses/InternalServerError" }
-      
-
   /profiles/{user_id}/conversations/{dest_user_id}/messages/{msg_id}/comments:
     parameters:
       - $ref: "#/components/parameters/user_id"
@@ -400,6 +398,23 @@ paths:
         "401": { $ref: "#/components/responses/Unauthorized" }
         "403": { $ref: "#/components/responses/Forbidden" }
         "500": { $ref: "#/components/responses/InternalServerError" }
+    get:
+      summary: list all groups
+      tags: ["Group"]
+      operationId: getMyGroups
+      description: Obtain list of all user's groups, in reverse order
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: groups list obtained succesfully
+          content:
+            plain/text:
+              schema: { $ref: "#/components/schemas/GroupsList" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
   /profiles/{user_id}/groups/{group_id}:
     parameters:
       - $ref: "#/components/parameters/user_id"
@@ -432,6 +447,157 @@ paths:
       responses:
         "200":
           description: group left succesfully
+          content:
+            plain/text:
+              schema: { $ref: "#/components/schemas/Ok" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+  /profiles/{user_id}/groups/{group_id}/messages:
+    parameters:
+      - $ref: "#/components/parameters/user_id"
+      - $ref: "#/components/parameters/group_id"
+    get:
+      summary: list all messages in a group
+      tags: ["Group"]
+      operationId: getGroupMessages
+      description: Obtain list of all messages in a group
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: message list obtained succesfully
+          content:
+            plain/text:
+              schema: { $ref: "#/components/schemas/MessagesList" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+    post:
+      parameters:
+        - name: reply
+          in: query
+          required: false
+          schema: {$ref: "#/components/schemas/Identificator"}
+      tags: ["Group"]
+      summary: send message
+      operationId: sendGroupMessage
+      description: send new message in the selected group
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: {$ref: "#/components/schemas/Message"}
+      responses:
+        "200":
+          description: message sent succesfully
+          content:
+            plain/text:
+              schema: { $ref: "#/components/schemas/Ok" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+  /profiles/{user_id}/groups/{group_id}/messages/{msg_id}:
+    parameters:
+      - $ref: "#/components/parameters/user_id"
+      - $ref: "#/components/parameters/group_id"
+      - $ref: "#/components/parameters/msg_id"
+    delete:
+      tags: ["Group"]
+      summary: delete message
+      operationId: deleteGroupMessage
+      description: user deletes message
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: message deleted succesfully
+          content:
+            plain/text:
+              schema: { $ref: "#/components/schemas/Ok" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+    post:
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                targetGroupID:
+                  type: integer
+                  description: ID del gruppo con cui `userID` vuole condividere il messaggio inoltrato
+                customContent:
+                  type: string
+                  description: (Opzionale) Testo aggiuntivo che l’utente può scrivere accanto al messaggio inoltrato
+      tags: ["Group"]
+      summary: forward message
+      description: send existing message in the selected group
+      operationId: forwardGroupMessage
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: message sent succesfully
+          content:
+            plain/text:
+              schema: { $ref: "#/components/schemas/Ok" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+  /profiles/{user_id}/groups/{group_id}/messages/{msg_id}/comments:
+    parameters:
+      - $ref: "#/components/parameters/user_id"
+      - $ref: "#/components/parameters/group_id"
+      - $ref: "#/components/parameters/msg_id"
+    put:
+      tags: ["Group"]
+      summary: comment message
+      operationId: commentGroupMessage
+      description: user comments specific message with an emoji
+      security:
+        - bearerAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/Comment"
+        required: true
+      responses:
+        "200":
+          description: message commented succesfully
+          content:
+            plain/text:
+              schema: { $ref: "#/components/schemas/Ok" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
+  /profiles/{user_id}/groups/{group_id}/messages/{msg_id}/comments/{comm_id}:
+    parameters:
+      - $ref: "#/components/parameters/user_id"
+      - $ref: "#/components/parameters/group_id"
+      - $ref: "#/components/parameters/msg_id"
+      - $ref: "#/components/parameters/comm_id"
+    delete:
+      tags: ["Group"]
+      summary: delete comment
+      operationId: uncommentGroupMessage
+      description: user deletes comment that he already put on a message
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: comment deleted succesfully
           content:
             plain/text:
               schema: { $ref: "#/components/schemas/Ok" }
@@ -651,6 +817,19 @@ components:
       properties:
         convo_id: { $ref: "#/components/schemas/Identificator" }
         user_id: { $ref: "#/components/schemas/Identificator" }
+    
+    GroupsList:
+      type: object
+      description: user's groups list       
+      properties:
+        conversations:
+          type: array
+          items:
+            $ref: "#/components/schemas/Group"
+          minItems: 0 
+          maxItems: 999
+      required:
+        - groups
     Group:
       description: group 
       type: object 

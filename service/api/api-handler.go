@@ -39,7 +39,15 @@ func (rt *_router) Handler() http.Handler {
 
 	rt.router.POST("/profiles/:userID/groups", rt.wrap(rt.createGroup, true))
 
+	rt.router.GET("/profiles/:userID/groups", rt.wrap(rt.getMyGroups, true))
+
 	rt.router.GET("/profiles/:userID/groups/:groupID", rt.wrap(rt.getGroup, true))
+
+	rt.router.GET("/profiles/:userID/groups/:groupID/messages", rt.wrap(rt.getGroupMessages, true))
+
+	rt.router.POST("/profiles/:userID/groups/:groupID/messages", rt.wrap(rt.sendGroupMessage, true))
+
+	rt.router.DELETE("/profiles/:userID/groups/:groupID/messages/:msgID", rt.wrap(rt.deleteGroupMessage, true))
 
 	rt.router.PUT("/profiles/:userID/groups/:groupID/members", rt.wrap(rt.addToGroup, true))
 

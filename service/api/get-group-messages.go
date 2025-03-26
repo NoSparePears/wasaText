@@ -11,8 +11,8 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-// rt.router.GET("/profiles/:userID/conversations/:destID/messages", rt.wrap(rt.getMessages, true))
-func (rt *_router) getMyMessages(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
+// rt.router.GET("/profiles/:userID/groups/:groupID/messages", rt.wrap(rt.getGroupMessages, true))
+func (rt *_router) getGroupMessages(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	// parse and validate userID
 	userID, err := strconv.Atoi(ps.ByName("userID"))
 	if err != nil {
@@ -26,25 +26,39 @@ func (rt *_router) getMyMessages(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 
-	destID, err := strconv.Atoi(ps.ByName("destID"))
+	groupID, err := strconv.Atoi(ps.ByName("groupID"))
 	if err != nil {
-		BadRequest(w, err, ctx, "Invalid destID")
+		BadRequest(w, err, ctx, "Invalid groupID")
 		return
 	}
 
 	var dbMessages []structs.Message
 	// retrieve and validate messages data from db
-	dbMessages, err = rt.db.GetMessages(userID, destID)
+	dbMessages, err = rt.db.GetGroupMessages(groupID)
 	if err != nil {
 		InternalServerError(w, err, ctx)
 		return
 	}
 
-	var messages []structs.Message
+	type response struct {
+		Message structs.Message `json:"message"`
+		User    structs.User    `json:"user"`
+	}
+
+	var messages []response
 
 	for _, dbMessage := range dbMessages {
+		sendID := dbMessage.SenderID
+		user, err := rt.db.GetUsernameByID(sendID)
+		if err != nil {
+			InternalServerError(w, err, ctx)
+			return
+		}
 		// Simply append each message to the response slice
-		messages = append(messages, dbMessage)
+		messages = append(messages, response{
+			Message: dbMessage,
+			User:    user,
+		})
 	}
 	// response
 	w.Header().Set("Content-Type", "application/json")

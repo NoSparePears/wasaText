@@ -70,6 +70,7 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 	}
 	group.Members = append(group.Members, creator)
 	group.GroupPropic64 = input.Photo
+	group.GroupName = input.Name
 
 	// create membertable per ogni selectedUser da frontend
 	for _, member := range input.Members {

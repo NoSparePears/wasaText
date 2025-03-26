@@ -1,19 +1,22 @@
 <template>
     <div class="group-view">
-        <header> v-if="name">
+        <header v-if="name">
             <img :src="avatar" alt="Group photo" class="group-photo" />
             <h1>{{ name }}</h1>
         </header>
-        <div class="messaages">
+        <div class="messages">
             <p v-if="!messages.length">No messages yet</p>
             <ul>
-                <li v-for="message in messages" :key="message.id"
-                    :class="{'own-message': isOwnMessage(message.senderID), 'other-message': !isOwnMessage(message.senderID)}" @click="openMessageOptions(message)">
+                <li v-for="msg in messages" :key="msg.message.id"
+                    :class="{'own-message': isOwnMessage(msg.message.senderID), 'other-message': !isOwnMessage(msg.message.senderID)}" @click="openMessageOptions(msg.message)">
+                    
+                    <!-- Display sender's name -->
+                    <span class="message-sender">{{ msg.user.username }}</span>
                     <div class="message-wrapper">
                         <div class="message-bubble">
-                            <span class="message-content">{{ message.content }}</span>
+                            <span class="message-content">{{ msg.message.content }}</span>
                         </div> 
-                        <span class="message-timestamp">{{ formatTimestamp(message.timestamp) }}</span>
+                        <span class="message-timestamp">{{ formatTimestamp(msg.message.timestamp) }}</span>
                     </div>
                 </li>
             </ul>
@@ -60,8 +63,9 @@ export default {
     data() {
         return {
             name: this.$route.query.name || "Unknown",
-            destID: this.$route.query.destID,
+            groupID: this.$route.query.groupID,
             avatar: this.$route.query.avatar || "default_propic.jpg",
+            members: this.$route.query.members ? JSON.parse(this.$route.query.members) : [], // Parse members safely            
             messages: [], // Lista dei messaggi
             text: null, // Testo del messaggio da inviare
             photo: null, // Foto da inviare
@@ -73,27 +77,41 @@ export default {
     },
     methods: {
         async sendMessage() {
+            this.errormsg = '';
+            const userID = sessionStorage.getItem('id');
+            const token = sessionStorage.getItem('token');
             try {
-                await this.$axios.post(`/groups/${this.$route.params.id}/messages`, {
-                    content: this.text
-                });
-                this.text = "";
-                this.fetchMessages();
-            } catch (e) {
-                console.error(e);
+                let response = await this.$axios.post(`/profiles/${userID}/groups/${this.groupID}/messages`, { content: this.text }, {
+                headers: { 'Authorization': sessionStorage.getItem('token') }
+                })
+                // Reset the variables used for sending the message
+                this.text = null;
+                this.photo = null;
+                // Assuming response.data is the message object itself now, not wrapped in a 'message' field
+                this.messages.push(response.data);
+            } catch (error) {
+                this.errormsg = error;
+                console.error('Error sending message:', error);
             }
         },
         async fetchMessages() {
+            this.errormsg = '';
+            const userID = sessionStorage.getItem('id');
+            const token = sessionStorage.getItem('token');
             try {
-                let response = await this.$axios.get(`/groups/${this.$route.params.id}/messages`);
-                this.messages = response.data;
-            } catch (e) {
-                console.error(e);
+                let response = await this.$axios.get(`/profiles/${userID}/groups/${this.groupID}/messages`, {
+            headers: { 'Authorization': sessionStorage.getItem('token') }
+            });
+            this.messages = response.data;
+            if (!this.messages) this.messages = [];
+            } catch (error) {
+                this.errormsg = error.response?.data?.message || 'Error fetching messages';
+                console.error('Error fetching messages:', error);
             }
         },
         async deleteMessage() {
             try {
-                await this.$axios.delete(`/groups/${this.$route.params.id}/messages/${this.selectedMessage.id}`);
+                await this.$axios.delete(`/profiles/${userID}/groups/${this.groupID}/messages/${this.selectedMessage.id}`);
                 this.closeModal();
                 this.fetchMessages();
             } catch (e) {
@@ -132,6 +150,7 @@ export default {
           }
 
         },
+        
         openMessageOptions(message) {
             this.selectedMessage = message;
             this.showModal = true;
@@ -154,7 +173,7 @@ export default {
       this.intervalId = setInterval(async () => {
         clearInterval(this.intervalId);
         await this.fetchMessages();
-        this.intervalId = setInterval(this.getMessages, 1000);
+        this.intervalId = setInterval(this.fetchMessages, 1000);
       }, 1000);
       
     },
@@ -166,3 +185,152 @@ export default {
     }
 }
 </script>
+
+<style scoped>
+  .group-view {
+    width: 100%;
+    max-width: 600px;
+    margin: 0 auto;
+    padding: 20px;
+    background-color: #f7f7f7;
+  }
+  
+  .group-photo {
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    margin-right: 10px;
+  }
+  
+  .messages ul {
+    list-style-type: none;
+    padding: 0;
+    margin: 0;
+  }
+  
+  .messages li {
+    display: flex;
+    flex-direction: column;
+    margin-bottom: 10px;
+  }
+  
+  .own-message {
+    align-items: flex-end;
+  }
+  
+  .other-message {
+    align-items: flex-start;
+  }
+  
+  .message-wrapper {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    max-width: 70%;
+  }
+
+  .message-bubble {
+    padding: 10px;
+    border-radius: 10px;
+    background-color: #f1f0f0;
+    word-wrap: break-word;
+    display: inline-block;
+  }
+
+  .message-timestamp {
+    font-size: 0.75rem;
+    color: rgba(0, 0, 0, 0.6);
+    margin-top: 2px;
+    text-align: right;
+    padding-right: 5px;
+  }
+  
+  .message-sender {
+    font-weight: bold;
+    color: #555;
+    margin-bottom: 4px;
+    display: block;
+  }
+
+  .own-message .message-bubble {
+    background-color: #007bff;
+    color: white;
+    align-self: flex-end;
+  }
+  
+  .other-message .message-bubble {
+    background-color: #f1f1f1;
+    color: black;
+    text-align: left;
+    align-self: flex-start;
+  }
+
+  .own-message .message-wrapper {
+    align-items: flex-end;
+  }
+
+  .other-message .message-wrapper {
+    align-items: flex-start;
+  }
+  
+  .message-meta {
+    font-size: 12px;
+    color: gray;
+    margin-top: 3px;
+  }
+  
+  .input-group {
+    margin-top: 20px;
+    display: flex;
+  }
+  
+  .input-group input {
+    flex-grow: 1;
+    padding: 10px;
+  }
+  
+  .input-group button {
+    padding: 10px;
+    margin-left: 10px;
+  }
+  
+  .message-options-modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.5);
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    z-index: 10;
+  }
+  
+  .modal-content {
+    background-color: white;
+    padding: 20px;
+    border-radius: 10px;
+    text-align: center;
+    width: 300px; /* Make the modal smaller */
+  }
+  
+  .modal-content button {
+    margin: 10px;
+  }
+  
+  .modal-content button.btn-primary {
+    background-color: #0084ff;
+    color: white;
+  }
+  
+  .modal-content button.btn-danger {
+    background-color: #f44336;
+    color: white;
+  }
+  
+  .modal-content button.btn-secondary {
+    background-color: #9e9e9e;
+    color: white;
+  }
+  </style>
