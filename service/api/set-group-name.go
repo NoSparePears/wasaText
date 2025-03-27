@@ -34,12 +34,18 @@ func (rt *_router) setGroupName(w http.ResponseWriter, r *http.Request, ps httpr
 		return
 	}
 
-	var name string
+	var requestBody struct {
+		Name string `json:"name"`
+	}
 
-	if err := json.NewDecoder(r.Body).Decode(&name); err != nil {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+	// Decode JSON request body into the struct
+	err = json.NewDecoder(r.Body).Decode(&requestBody)
+	if err != nil {
+		BadRequest(w, err, ctx, "Error decoding JSON")
 		return
 	}
+
+	name := requestBody.Name
 
 	if !rt.validGroupName(name) {
 		http.Error(w, "Invalid name for the group", http.StatusBadRequest)
