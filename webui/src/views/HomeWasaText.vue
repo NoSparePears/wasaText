@@ -234,12 +234,11 @@ export default {
             name: group.groupName,
             groupID: group.groupID,
             avatar: group.photo,
-            members: JSON.stringify(group.members) // Convert to JSON string
           }
         });
       } catch (error) {
-        this.errormsg = error.response?.data?.message || 'Error opening chat';
-        console.error('Error opening chat:', error);
+        this.errormsg = error.response?.data?.message || 'Error opening group';
+        console.error('Error opening group:', error);
       }
     },
     handleImageUpload(event) {

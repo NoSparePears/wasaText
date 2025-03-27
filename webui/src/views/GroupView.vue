@@ -3,11 +3,15 @@
         <header v-if="name">
             <img :src="avatar" alt="Group photo" class="group-photo" />
             <h1>{{ name }}</h1>
+            <button @click="goToInfo" class="button">
+              <svg class="feather"><use href="/feather-sprite-v4.29.0.svg#info"></use></svg>
+              
+            </button>
         </header>
         <div class="messages">
             <p v-if="!messages.length">No messages yet</p>
             <ul>
-                <li v-for="msg in messages" :key="msg.message.id"
+                <li v-for="msg in messages" :key="msg.message.msgID"
                     :class="{'own-message': isOwnMessage(msg.message.senderID), 'other-message': !isOwnMessage(msg.message.senderID)}" @click="openMessageOptions(msg.message)">
                     
                     <!-- Display sender's name -->
@@ -33,7 +37,6 @@
             <div class="modal-content">
                 <h3>What would you like to do with this message?</h3>
                 <button @click="toggleCommentModal" class="btn btn-primary">Comment</button>
-                <button @click="toggleSearchModal" class="btn btn-primary">Forward</button>
                 <button @click="deleteMessage" class="btn btn-danger">Delete</button>
                 <button @click="closeModal" class="btn btn-secondary">Cancel</button>
             </div>
@@ -65,7 +68,6 @@ export default {
             name: this.$route.query.name || "Unknown",
             groupID: this.$route.query.groupID,
             avatar: this.$route.query.avatar || "default_propic.jpg",
-            members: this.$route.query.members ? JSON.parse(this.$route.query.members) : [], // Parse members safely            
             messages: [], // Lista dei messaggi
             text: null, // Testo del messaggio da inviare
             photo: null, // Foto da inviare
@@ -82,7 +84,7 @@ export default {
             const token = sessionStorage.getItem('token');
             try {
                 let response = await this.$axios.post(`/profiles/${userID}/groups/${this.groupID}/messages`, { content: this.text }, {
-                headers: { 'Authorization': sessionStorage.getItem('token') }
+                headers: { 'Authorization': token }
                 })
                 // Reset the variables used for sending the message
                 this.text = null;
@@ -110,8 +112,12 @@ export default {
             }
         },
         async deleteMessage() {
+            const userID = sessionStorage.getItem('id');
+            const token = sessionStorage.getItem('token');
             try {
-                await this.$axios.delete(`/profiles/${userID}/groups/${this.groupID}/messages/${this.selectedMessage.id}`);
+                await this.$axios.delete(`/profiles/${userID}/groups/${this.groupID}/messages/${this.selectedMessage.msgID}`, {
+                    headers: { 'Authorization': token }
+            });
                 this.closeModal();
                 this.fetchMessages();
             } catch (e) {
@@ -150,7 +156,6 @@ export default {
           }
 
         },
-        
         openMessageOptions(message) {
             this.selectedMessage = message;
             this.showModal = true;
@@ -161,7 +166,23 @@ export default {
         },
         toggleSearchModal() {
             this.searchModalVisible = !this.searchModalVisible;
-        }
+        },
+        goToInfo() {
+            console.log('Navigating to group info');
+            try {
+                this.$router.push({
+                    path: `/home/groups/${this.groupID}/info`,
+                    query: {
+                        name: this.name || "Unknown",
+                        groupID: this.groupID,
+                        avatar: this.avatar || "default_propic.jpg",
+                    }
+                })
+            } catch (error) {
+                this.errormsg = error.response?.data?.message || 'Error opening group s info';
+                console.error('Error opening group info:', error);
+            }
+        },
     },
     mounted() {
       // Se l'utente non è loggato, reindirizza alla pagina di login

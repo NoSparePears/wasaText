@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"wasaText/service/api/reqcontext"
+	"wasaText/service/structs"
 
 	"github.com/julienschmidt/httprouter"
 )
@@ -27,10 +28,20 @@ func (rt *_router) GetGroupMembers(w http.ResponseWriter, r *http.Request, ps ht
 		return
 	}
 
-	members, err := rt.db.GetGroupMembers(groupID)
+	dbMembers, err := rt.db.GetGroupMembers(groupID)
 	if err != nil {
 		InternalServerError(w, err, ctx)
 		return
+	}
+
+	var members []structs.User
+	for _, dbMember := range dbMembers {
+		user, err := rt.db.GetUsernameByID(dbMember.ID)
+		if err != nil {
+			InternalServerError(w, err, ctx)
+			return
+		}
+		members = append(members, user)
 	}
 
 	// set response header for json content

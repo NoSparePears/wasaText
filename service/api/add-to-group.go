@@ -29,11 +29,24 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 
-	var memberID int
+	// Define a struct to match JSON body
+	var requestBody struct {
+		MemberID int `json:"memberID"`
+	}
 
-	err = json.NewDecoder(r.Body).Decode(&memberID)
+	// Decode JSON request body into the struct
+	err = json.NewDecoder(r.Body).Decode(&requestBody)
 	if err != nil {
 		BadRequest(w, err, ctx, "Error decoding JSON")
+		return
+	}
+
+	// Get the parsed member ID
+	memberID := requestBody.MemberID
+
+	// Ensure memberID is valid
+	if memberID <= 0 {
+		BadRequest(w, err, ctx, "Invalid memberID")
 		return
 	}
 
@@ -43,19 +56,8 @@ func (rt *_router) addToGroup(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 
-	members, err := rt.db.GetGroupMembers(groupID)
-	if err != nil {
-		InternalServerError(w, err, ctx)
-		return
-	}
-
 	// set response header for json content
-	w.Header().Set("Content-Type", "application/json")
+
 	w.WriteHeader(http.StatusOK)
-	// encode user in json
-	if err = json.NewEncoder(w).Encode(members); err != nil {
-		ctx.Logger.WithError(err).Error("Error encoding response")
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
+
 }

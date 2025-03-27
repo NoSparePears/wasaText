@@ -5,7 +5,7 @@ import (
 	"wasaText/service/structs"
 )
 
-var query_GETMEMBERS = `SELECT memberID FROM GroupMember WHERE groupID = ?`
+var query_GETMEMBERS = `SELECT userID FROM GroupMember WHERE groupID = ?`
 
 func (db *appdbimpl) GetGroupMembers(group_id int) ([]structs.User, error) {
 	// get members from database
