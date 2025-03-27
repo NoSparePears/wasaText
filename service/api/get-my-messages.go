@@ -40,16 +40,10 @@ func (rt *_router) getMyMessages(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 
-	var messages []structs.Message
-
-	for _, dbMessage := range dbMessages {
-		// Simply append each message to the response slice
-		messages = append(messages, dbMessage)
-	}
 	// response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	if err = json.NewEncoder(w).Encode(messages); err != nil {
+	if err = json.NewEncoder(w).Encode(dbMessages); err != nil {
 		ctx.Logger.WithError(err).Error("Error encoding response")
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return

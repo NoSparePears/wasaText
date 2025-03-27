@@ -121,7 +121,7 @@ type AppDatabase interface {
 	AddSentCheck(msgID int) error
 
 	// It adds checkmark for reading a message, and its timestamp
-	AddReadCheck(convoID int) error
+	MarkMessagesAsRead(msgIDs []int) error
 
 	Ping() error
 }

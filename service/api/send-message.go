@@ -68,6 +68,8 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		InternalServerError(w, err, ctx)
 		return
 	}
+
+	msg.CheckSent = true
 	// response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)

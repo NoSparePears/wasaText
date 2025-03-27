@@ -13,7 +13,13 @@
               <div class="message-bubble">
                 <span class="message-content">{{ message.content }}</span>
               </div> 
-              <span class="message-timestamp">{{ formatTimestamp(message.timestamp) }}</span>
+
+              <div class="message-meta" v-if="isOwnMessage(message.senderID)">
+                <span class="message-status">{{ messageStatus(message) }}</span>
+                <span class="message-timestamp">{{ formatTimestamp(message.timestamp) }}</span>
+              </div>
+              <span v-else class="message-timestamp">{{ formatTimestamp(message.timestamp) }}</span>
+
             </div>
           </li>
         </ul>
@@ -33,7 +39,7 @@
           <button @click="closeModal" class="btn btn-secondary">Cancel</button>
         </div>
       </div>
-      <!-- Modal for searching users to start a new conversation -->
+      <!-- Modal for searching users to whom forward a message -->
       <Search :show="searchModalVisible" @close="toggleSearchModal" @user-selected="forwardMessage" title="search">
         <template v-slot:header>
           <h3>Users</h3>
@@ -69,6 +75,14 @@
         const userID = sessionStorage.getItem('id');
         return String(senderID) === String(userID);
       },
+      messageStatus(message) {
+        if (message.received) {
+          return "✓✓"; // Double check for read messages
+        } else if (message.sent) {
+          return "✓"; // Single check for sent messages
+        }
+        return ""; // No checkmark if not sent
+      },
       async getMessages() {
         this.errormsg = '';
         const userID = sessionStorage.getItem('id');
@@ -80,7 +94,7 @@
           this.messages = response.data;
           if (!this.messages) this.messages = [];
         } catch (error) {
-            this.errormsg = error.response?.data?.message || 'Error fetching messages';
+          this.errormsg = error.response?.data?.message || 'Error fetching messages';
           console.error('Error fetching messages:', error);
         }
       },
@@ -303,11 +317,19 @@
   }
   
   .message-meta {
-    font-size: 12px;
-    color: gray;
-    margin-top: 3px;
+    display: flex;
+    align-items: center;
+    font-size: 0.75rem;
+    color: rgba(0, 0, 0, 0.6);
+    margin-top: 2px;
   }
-  
+
+  .message-status {
+    margin-right: 5px;
+    color: #007bff;
+    font-weight: bold;
+  }
+
   .input-group {
     margin-top: 20px;
     display: flex;

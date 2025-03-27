@@ -5,7 +5,6 @@
             <h1>{{ name }}</h1>
             <button @click="goToInfo" class="button">
               <svg class="feather"><use href="/feather-sprite-v4.29.0.svg#info"></use></svg>
-              
             </button>
         </header>
         <div class="messages">

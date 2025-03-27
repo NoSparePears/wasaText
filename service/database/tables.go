@@ -32,7 +32,7 @@ var sql_GROUPMEMBERTABLE = `CREATE TABLE IF NOT EXISTS GroupMember (
   groupID INTEGER NOT NULL,
   userID INTEGER NOT NULL,
 
-  CONSTRAINT fk_group FOREIGN KEY (groupID) REFERENCES GlovalConversation(globalConvoID),
+  CONSTRAINT fk_group FOREIGN KEY (groupID) REFERENCES GlobalConversation(globalConvoID),
   CONSTRAINT fk_user FOREIGN KEY (userID) REFERENCES User(userID),
 
   UNIQUE (groupID, userID)
