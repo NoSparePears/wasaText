@@ -46,6 +46,8 @@
       <button @click="updatePhoto">Salva</button>
     </div>
   </div>
+  
+
 </template>
 
 <script>
@@ -69,22 +71,23 @@ export default {
     // Chiudi il modale dello username
     closeUsernameModal() {
       this.isUsernameModalOpen = false;
-      window.location.reload(); //reloado la pagina
     },
     // Funzione per aggiornare lo username
     async updateUsername() {
       if (this.newUsername !== this.username) {
         try {
           // Fai una chiamata API per aggiornare lo username nel database
-          
-          let _ = await this.$axios.put(`/profiles/${sessionStorage.id}/username`, { username: this.newUsername }, { headers: { 'Authorization': `${sessionStorage.token}` } })
-          // Assegna il nuovo username alla variabile username per l'aggiornamento della pagina;
-
+          await this.$axios.put(`/profiles/${sessionStorage.id}/username`, { username: this.newUsername }, { headers: { 'Authorization': `${sessionStorage.token}` } })
           // Aggiorna lo username nel frontend
           sessionStorage.username = this.newUsername; // Salva nel sessionStorage
+          this.username = this.newUsername
           this.closeUsernameModal(); // Chiudi il modale
         } catch (error) {
-          this.errorMsg = "Errore di rete!";
+          if (error.response && error.response.data) {
+            this.errorMsg = error.response.data; // Set error message from the backend
+          } else {
+            this.errorMsg = "Errore di rete!";
+          }
         }
       }
     },
@@ -214,5 +217,15 @@ export default {
   color: red;
   font-size: 14px;
 }
+.error-message {
+    color: red;
+    font-weight: bold;
+}
+
+.success-message {
+    color: green;
+    font-weight: bold;
+}
+
 </style>
 

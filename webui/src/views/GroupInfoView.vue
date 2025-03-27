@@ -17,13 +17,7 @@
 
         <!-- Members List Section -->
         <section class="members-section">
-            <h2>Members</h2>
-            <ul>
-                <li v-for="member in members" :key="member.id">
-                    <img :src="member.avatar || 'default_avatar.jpg'" alt="User Avatar" class="member-avatar" />
-                    {{ member.username }}
-                </li>
-            </ul>
+            
             <button class="btn add-btn" @click="toggleSearchModal">
                 <svg class="feather"><use href="/feather-sprite-v4.29.0.svg#user-plus"></use></svg>
                 Add Member
@@ -32,6 +26,14 @@
                 <svg class="feather"><use href="/feather-sprite-v4.29.0.svg#log-out"></use></svg>
 
             </button>
+
+            <h2>Members</h2>
+            <ul>
+                <li v-for="member in members" :key="member.id">
+                    <img :src="member.avatar || 'default_avatar.jpg'" alt="User Avatar" class="member-avatar" />
+                    {{ member.username }}
+                </li>
+            </ul>
         </section>
 
         <!-- Edit Name Modal -->
