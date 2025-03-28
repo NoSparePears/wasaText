@@ -25,7 +25,7 @@
 </template>
 
 <script>
-import debounce from 'lodash.debounce';
+import {debounce} from '../../../node_modules/lodash.debounce/index.js';
 
 export default {
   props: {
