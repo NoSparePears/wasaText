@@ -16,11 +16,16 @@
                     <!-- Display sender's name -->
                     <span class="message-sender">{{ msg.user.username }}</span>
                     <div class="message-wrapper">
-                        <div class="message-bubble">
-                            <span class="message-content">{{ msg.message.content }}</span>
-                        </div> 
-                        <span class="message-timestamp">{{ formatTimestamp(msg.message.timestamp) }}</span>
+                    <div class="message-bubble">
+                      <span class="message-content">{{ msg.message.content }}</span>
+                    </div> 
+                  
+                    <div class="message-meta" v-if="isOwnMessage(msg.message.senderID)">
+                      <span class="message-status">{{ messageStatus(msg.message) }}</span>
+                      <span class="message-timestamp">{{ formatTimestamp(msg.message.timestamp) }}</span>
                     </div>
+                    <div v-else class="message-timestamp">{{ formatTimestamp(msg.message.timestamp) }}</div>
+                  </div>
                 </li>
             </ul>
         </div>
@@ -77,111 +82,119 @@ export default {
         }
     },
     methods: {
-        async sendMessage() {
-            this.errormsg = '';
-            const userID = sessionStorage.getItem('id');
-            const token = sessionStorage.getItem('token');
-            try {
-                let response = await this.$axios.post(`/profiles/${userID}/groups/${this.groupID}/messages`, { content: this.text }, {
-                headers: { 'Authorization': token }
-                })
-                // Reset the variables used for sending the message
-                this.text = null;
-                this.photo = null;
-                // Assuming response.data is the message object itself now, not wrapped in a 'message' field
-                this.messages.push(response.data);
-            } catch (error) {
-                this.errormsg = error;
-                console.error('Error sending message:', error);
-            }
-        },
-        async fetchMessages() {
-            this.errormsg = '';
-            const userID = sessionStorage.getItem('id');
-            const token = sessionStorage.getItem('token');
-            try {
-                let response = await this.$axios.get(`/profiles/${userID}/groups/${this.groupID}/messages`, {
-            headers: { 'Authorization': sessionStorage.getItem('token') }
-            });
-            this.messages = response.data;
-            if (!this.messages) this.messages = [];
-            } catch (error) {
-                this.errormsg = error.response?.data?.message || 'Error fetching messages';
-                console.error('Error fetching messages:', error);
-            }
-        },
-        async deleteMessage() {
-            const userID = sessionStorage.getItem('id');
-            const token = sessionStorage.getItem('token');
-            try {
-                await this.$axios.delete(`/profiles/${userID}/groups/${this.groupID}/messages/${this.selectedMessage.msgID}`, {
-                    headers: { 'Authorization': token }
-            });
-                this.closeModal();
-                this.fetchMessages();
-            } catch (e) {
-                console.error(e);
-            }
-        },
-        isOwnMessage(senderID) {
-            const userID = sessionStorage.getItem('id');
-            return String(senderID) === String(userID);
-        },
-        formatTimestamp(timestamp) {
-          if (!timestamp) return "";
-
-          const date = new Date(timestamp);
-          const now = new Date();
-
-          // Controlla se il messaggio è di oggi
-          const isToday = date.toDateString() === now.toDateString();
-            
-          // Controlla se il messaggio è di ieri
-          const yesterday = new Date();
-          yesterday.setDate(now.getDate() - 1);
-          const isYesterday = date.toDateString() === yesterday.toDateString();
-
-          // Formatta orario (HH:MM)
-          const timeString = date.toLocaleTimeString("it-IT", {hour: "2-digit", minute: "2-digit" });
-
-          if (isToday) {
-            return `Oggi, ${timeString}`;
-          } else if (isYesterday) {
-            return `Ieri, ${timeString}`;
-          } else {
-            // Formatta data (GG/MM/AAAA)
-            const dateString = date.toLocaleDateString("it-IT");
-            return `${dateString}, ${timeString}`;
+      messageStatus(message) {
+        if (message.received) {
+          return "✓✓"; // Double check for read messages
+        } else if (message.sent) {
+          return "✓"; // Single check for sent messages
+        }
+        return ""; // No checkmark if not sent
+      },
+      async sendMessage() {
+          this.errormsg = '';
+          const userID = sessionStorage.getItem('id');
+          const token = sessionStorage.getItem('token');
+          try {
+              let response = await this.$axios.post(`/profiles/${userID}/groups/${this.groupID}/messages`, { content: this.text }, {
+              headers: { 'Authorization': token }
+              })
+              // Reset the variables used for sending the message
+              this.text = null;
+              this.photo = null;
+              // Assuming response.data is the message object itself now, not wrapped in a 'message' field
+              this.messages.push(response.data);
+          } catch (error) {
+              this.errormsg = error;
+              console.error('Error sending message:', error);
           }
+      },
+      async fetchMessages() {
+          this.errormsg = '';
+          const userID = sessionStorage.getItem('id');
+          const token = sessionStorage.getItem('token');
+          try {
+              let response = await this.$axios.get(`/profiles/${userID}/groups/${this.groupID}/messages`, {
+          headers: { 'Authorization': sessionStorage.getItem('token') }
+          });
+          this.messages = response.data;
+          if (!this.messages) this.messages = [];
+          } catch (error) {
+              this.errormsg = error.response?.data?.message || 'Error fetching messages';
+              console.error('Error fetching messages:', error);
+          }
+      },
+      async deleteMessage() {
+          const userID = sessionStorage.getItem('id');
+          const token = sessionStorage.getItem('token');
+          try {
+              await this.$axios.delete(`/profiles/${userID}/groups/${this.groupID}/messages/${this.selectedMessage.msgID}`, {
+                  headers: { 'Authorization': token }
+          });
+              this.closeModal();
+              this.fetchMessages();
+          } catch (e) {
+              console.error(e);
+          }
+      },
+      isOwnMessage(senderID) {
+          const userID = sessionStorage.getItem('id');
+          return String(senderID) === String(userID);
+      },
+      formatTimestamp(timestamp) {
+        if (!timestamp) return "";
 
-        },
-        openMessageOptions(message) {
-            this.selectedMessage = message;
-            this.showModal = true;
-        },
-        closeModal() {
-            this.showModal = false;
-            this.selectedMessage = null;
-        },
-        toggleSearchModal() {
-            this.searchModalVisible = !this.searchModalVisible;
-        },
-        goToInfo() {
-            console.log('Navigating to group info');
-            try {
-                this.$router.push({
-                    path: `/home/groups/${this.groupID}/info`,
-                    query: {
-                        name: this.name || "Unknown",
-                        groupID: this.groupID,
-                        avatar: this.avatar || "default_propic.jpg",
-                    }
-                })
-            } catch (error) {
-                this.errormsg = error.response?.data?.message || 'Error opening group s info';
-                console.error('Error opening group info:', error);
-            }
-        },
+        const date = new Date(timestamp);
+        const now = new Date();
+
+        // Controlla se il messaggio è di oggi
+        const isToday = date.toDateString() === now.toDateString();
+            
+        // Controlla se il messaggio è di ieri
+        const yesterday = new Date();
+        yesterday.setDate(now.getDate() - 1);
+        const isYesterday = date.toDateString() === yesterday.toDateString();
+
+        // Formatta orario (HH:MM)
+        const timeString = date.toLocaleTimeString("it-IT", {hour: "2-digit", minute: "2-digit" });
+
+        if (isToday) {
+          return `Oggi, ${timeString}`;
+        } else if (isYesterday) {
+          return `Ieri, ${timeString}`;
+        } else {
+          // Formatta data (GG/MM/AAAA)
+          const dateString = date.toLocaleDateString("it-IT");
+          return `${dateString}, ${timeString}`;
+        }
+
+      },
+      openMessageOptions(message) {
+          this.selectedMessage = message;
+          this.showModal = true;
+      },
+      closeModal() {
+          this.showModal = false;
+          this.selectedMessage = null;
+      },
+      toggleSearchModal() {
+          this.searchModalVisible = !this.searchModalVisible;
+      },
+      goToInfo() {
+          console.log('Navigating to group info');
+          try {
+              this.$router.push({
+                  path: `/home/groups/${this.groupID}/info`,
+                  query: {
+                      name: this.name || "Unknown",
+                      groupID: this.groupID,
+                      avatar: this.avatar || "default_propic.jpg",
+                  }
+              })
+          } catch (error) {
+              this.errormsg = error.response?.data?.message || 'Error opening group s info';
+              console.error('Error opening group info:', error);
+          }
+      },
     },
     mounted() {
       // Se l'utente non è loggato, reindirizza alla pagina di login
@@ -297,6 +310,12 @@ export default {
     font-size: 12px;
     color: gray;
     margin-top: 3px;
+  }
+
+  .message-status {
+    margin-right: 5px;
+    color: #007bff;
+    font-weight: bold;
   }
   
   .input-group {

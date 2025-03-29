@@ -82,6 +82,8 @@ type AppDatabase interface {
 	// It sends a Message
 	InsertMessage(msg structs.Message) (structs.Message, error)
 
+	InsertGroupMessage(msg structs.Message) (structs.Message, error)
+
 	// It deletes a Message
 	DeleteMessage(msgID int, convoID int) error
 
@@ -100,7 +102,7 @@ type AppDatabase interface {
 	// It returns a list of all the groups
 	GetGroups(userID int) ([]structs.Group, error)
 
-	GetGroupMessages(groupID int) ([]structs.Message, error)
+	GetGroupMessages(groupID int, userID int) ([]structs.Message, error)
 
 	// It returns convo information for the group
 	GetGroupConvo(groupID int) (structs.Group, error)

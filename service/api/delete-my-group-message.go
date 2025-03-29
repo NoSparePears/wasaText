@@ -53,7 +53,7 @@ func (rt *_router) deleteGroupMessage(w http.ResponseWriter, r *http.Request, ps
 		return
 	}
 
-	messages, err := rt.db.GetGroupMessages(groupID)
+	messages, err := rt.db.GetGroupMessages(groupID, senderID)
 	if err != nil {
 		InternalServerError(w, err, ctx)
 		return

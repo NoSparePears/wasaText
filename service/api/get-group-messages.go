@@ -34,7 +34,7 @@ func (rt *_router) getGroupMessages(w http.ResponseWriter, r *http.Request, ps h
 
 	var dbMessages []structs.Message
 	// retrieve and validate messages data from db
-	dbMessages, err = rt.db.GetGroupMessages(groupID)
+	dbMessages, err = rt.db.GetGroupMessages(userID, groupID)
 	if err != nil {
 		InternalServerError(w, err, ctx)
 		return

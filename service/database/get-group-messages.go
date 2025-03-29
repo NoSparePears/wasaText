@@ -5,15 +5,13 @@ import (
 	"wasaText/service/structs"
 )
 
-func (db *appdbimpl) GetGroupMessages(groupID int) ([]structs.Message, error) {
+// GetGroupMessages retrieves messages from a group and ensures CheckReceived is correctly set
+func (db *appdbimpl) GetGroupMessages(userID int, groupID int) ([]structs.Message, error) {
 
-	// get messages from database
-	rows, err := db.c.Query("SELECT msgID, convoID, senderID, content, timestamp FROM Message WHERE convoID = ? ORDER BY timestamp ASC;", groupID)
+	// Fetch messages
+	rows, err := db.c.Query(query_MSGINFO, groupID)
 	if err != nil {
-		return nil, errors.New("couldnt get messages from selected convo")
-	}
-	if rows == nil {
-		return nil, nil
+		return nil, errors.New("couldn't get messages from selected conversation")
 	}
 	defer rows.Close()
 
@@ -21,16 +19,22 @@ func (db *appdbimpl) GetGroupMessages(groupID int) ([]structs.Message, error) {
 
 	for rows.Next() {
 		var message structs.Message
-		err = rows.Scan(&message.MsgID, &message.ConvoID, &message.SenderID, &message.Content, &message.Timestamp)
+
+		// Scan the message fields
+		err = rows.Scan(
+			&message.MsgID, &message.ConvoID, &message.SenderID, &message.Content,
+			&message.Timestamp, &message.CheckSent, &message.CheckReceived,
+		)
 		if err != nil {
 			return nil, err
 		}
 
 		messages = append(messages, message)
 	}
-	// check for errors encountered during iteration
-	if rows.Err() != nil {
-		return nil, errors.New("errore durante scan rows")
+
+	// Handle row scanning error
+	if err = rows.Err(); err != nil {
+		return nil, errors.New("error during row scanning")
 	}
 
 	return messages, nil

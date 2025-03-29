@@ -58,7 +58,7 @@ func (rt *_router) sendGroupMessage(w http.ResponseWriter, r *http.Request, ps h
 	msg.ConvoID = groupID
 
 	// insert message inside db
-	dbMsg, err := rt.db.InsertMessage(msg)
+	dbMsg, err := rt.db.InsertGroupMessage(msg)
 	if err != nil {
 		InternalServerError(w, err, ctx)
 		return
