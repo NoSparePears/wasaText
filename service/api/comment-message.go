@@ -2,7 +2,8 @@ package api
 
 import (
 	"encoding/json"
-	"errors"
+	"io"
+	"log"
 	"net/http"
 	"strconv"
 	"wasaText/service/api/reqcontext"
@@ -29,21 +30,36 @@ func (rt *_router) commentMessage(w http.ResponseWriter, r *http.Request, ps htt
 		return
 	}
 
-	var comment structs.Comment
-	// read request body
-	err = json.NewDecoder(r.Body).Decode(&comment.Emoji)
+	body, err := io.ReadAll(r.Body)
 	if err != nil {
-		BadRequest(w, err, ctx, "Error decoding JSON")
+		log.Println("Error reading body:", err)
+		http.Error(w, "Failed to read body", http.StatusInternalServerError)
 		return
 	}
-	// check provided body for the comment
-	if comment.Emoji == "" {
-		BadRequest(w, errors.New("string is required"), ctx, "Missing message body")
+	log.Println("Request body:", string(body))
+
+	// Now decode it into the struct
+	var comment structs.Comment
+	err = json.Unmarshal(body, &comment)
+	if err != nil {
+		log.Println("Error decoding JSON:", err)
+		http.Error(w, "Error decoding JSON", http.StatusBadRequest)
 		return
 	}
 
 	comment.MsgID = msgID
 	comment.SenderID = userID
+
+	// check if the user already commented the message
+	err = rt.db.CheckComment(msgID, userID)
+	if err != nil {
+
+		err = rt.db.DeleteComment(msgID, userID)
+		if err != nil {
+			InternalServerError(w, err, ctx)
+			return
+		}
+	}
 
 	dbComm, err := rt.db.InsertComment(comment)
 	if err != nil {

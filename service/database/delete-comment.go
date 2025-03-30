@@ -4,11 +4,11 @@ import (
 	"errors"
 )
 
-var query_DELETE_COMMENT = `DELETE FROM Comment WHERE commID = ? AND msgID = ? AND senderID = ?;`
+var query_DELETE_COMMENT = `DELETE FROM Comment WHERE msgID = ? AND senderID = ?;`
 
-func (db *appdbimpl) DeleteComment(userID int, msgID int, commID int) error {
+func (db *appdbimpl) DeleteComment(userID int, msgID int) error {
 	// execute deletion inside db
-	result, err := db.c.Exec(query_DELETE_COMMENT, commID, msgID, userID)
+	result, err := db.c.Exec(query_DELETE_COMMENT, msgID, userID)
 	if err != nil {
 		return errors.New("internal server error")
 	}

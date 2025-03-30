@@ -30,14 +30,7 @@ func (rt *_router) uncommmentMessage(w http.ResponseWriter, r *http.Request, ps 
 		return
 	}
 
-	// parse comment ID
-	commID, err := strconv.Atoi(ps.ByName("commID"))
-	if err != nil {
-		BadRequest(w, err, ctx, "Invalid commID")
-		return
-	}
-
-	if err := rt.db.DeleteComment(sendID, msgID, commID); err != nil {
+	if err := rt.db.DeleteComment(sendID, msgID); err != nil {
 		InternalServerError(w, err, ctx)
 		return
 	}

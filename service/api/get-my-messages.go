@@ -40,10 +40,36 @@ func (rt *_router) getMyMessages(w http.ResponseWriter, r *http.Request, ps http
 		return
 	}
 
+	type response struct {
+		Message  structs.Message   `json:"message"`
+		Comments []structs.Comment `json:"comments"`
+	}
+
+	var messages []response
+
+	for _, dbMessage := range dbMessages {
+
+		// Get comments for each message
+		comments, err := rt.db.GetMessageComments(dbMessage.MsgID, dbMessage.ConvoID)
+		if err != nil {
+			ctx.Logger.WithError(err).Error("Error getting comments")
+			InternalServerError(w, err, ctx)
+			return
+		}
+		if comments == nil {
+			comments = []structs.Comment{}
+		}
+
+		messages = append(messages, response{
+			Message:  dbMessage,
+			Comments: comments,
+		})
+	}
+
 	// response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	if err = json.NewEncoder(w).Encode(dbMessages); err != nil {
+	if err = json.NewEncoder(w).Encode(messages); err != nil {
 		ctx.Logger.WithError(err).Error("Error encoding response")
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return

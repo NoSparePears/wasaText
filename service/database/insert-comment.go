@@ -18,13 +18,8 @@ func (db *appdbimpl) InsertComment(c structs.Comment) (structs.Comment, error) {
 	if err != nil {
 		return structs.Comment{}, errors.New("failed to retrieve comment ID")
 	}
-	// Recupera il timestamp dal database
-	var timestamp string
-	err = db.c.QueryRow(query_GET_TIMESTAMP, cID).Scan(&timestamp)
-	if err != nil {
-		return structs.Comment{}, errors.New("failed to retrieve comment timestamp")
-	}
-	c.Timestamp = timestamp // Assegna il timestamp al messaggio
+	// Set the CommID field of the comment struct
+	c.CommID = int(cID)
 
 	return c, nil
 }

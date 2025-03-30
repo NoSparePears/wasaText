@@ -90,11 +90,15 @@ type AppDatabase interface {
 	// It comments a Message
 	InsertComment(comment structs.Comment) (structs.Comment, error)
 
-	// It forwards a massage to a conversation
-	ComposeMsgToForward(msgID int, convoID int, customContent string) (structs.Message, error)
+	CheckComment(msgID int, userID int) error
 
 	// It deletes a comment
-	DeleteComment(user_id int, msg_id int, comm_id int) error
+	DeleteComment(user_id int, msg_id int) error
+
+	GetMessageComments(msgID int, convoID int) ([]structs.Comment, error)
+
+	// It forwards a massage to a conversation
+	ComposeMsgToForward(msgID int, convoID int, customContent string) (structs.Message, error)
 
 	// It creates a group
 	CreateGroup(groupName string, userID int) (structs.Group, error)

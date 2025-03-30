@@ -842,7 +842,25 @@ components:
       type: object
       properties:
         comm_id: { $ref: "#/components/schemas/Identificator" }
-        emoji: { $ref: "#/components/schemas/Emoji" }
+        emoji: 
+          type: string
+          description: the emoji character
+          pattern: "^.*?$"
+          minLength: 1
+          maxLength: 1
+          example: "🐱"
+    CommentsList:
+      type: object
+      description: list of comments
+      properties:
+        comments:
+          type: array
+          items:
+            $ref: "#/components/schemas/Comment"
+          minItems: 0 
+          maxItems: 999
+      required:
+        - comments
     Text:
       type: object
       description: text of the message
@@ -853,16 +871,6 @@ components:
           pattern: '^[^\/\\]{0,64}$'
           minLength: 1
           maxLength: 65536
-    Emoji:
-      type: object
-      description: a single emoji, represented by its Unicode character.
-      properties:
-        emoji:
-          type: string
-          pattern: "^.*?$"
-          minLength: 1
-          maxLength: 1
-          example: "🐱"
     Timestamp:
       title: timestamp
       description: the timestamp of the message

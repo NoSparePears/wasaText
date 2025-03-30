@@ -7,18 +7,34 @@
       <div class="messages">
         <p v-if="!messages.length">No messages yet.</p>
         <ul>
-          <li v-for="message in messages" :key="message.msgID" 
-              :class="{'own-message': isOwnMessage(message.senderID), 'other-message': !isOwnMessage(message.senderID)}" @click="openMessageOptions(message)">
+          <li v-for="message in messages" :key="message.message.msgID" 
+              :class="{'own-message': isOwnMessage(message.message.senderID), 'other-message': !isOwnMessage(message.message.senderID)}" @click="openMessageOptions(message.message)">
             <div class="message-wrapper">
               <div class="message-bubble">
-                <span class="message-content">{{ message.content }}</span>
+                <span class="message-content">{{ message.message.content }}</span>
               </div> 
 
-              <div class="message-meta" v-if="isOwnMessage(message.senderID)">
-                <span class="message-status">{{ messageStatus(message) }}</span>
-                <span class="message-timestamp">{{ formatTimestamp(message.timestamp) }}</span>
+              <div class="message-meta" v-if="isOwnMessage(message.message.senderID)">
+                <span class="message-status">{{ messageStatus(message.message) }}</span>
+                <span class="message-timestamp">{{ formatTimestamp(message.message.timestamp) }}</span>
               </div>
-              <span v-else class="message-timestamp">{{ formatTimestamp(message.timestamp) }}</span>
+              <span v-else class="message-timestamp">{{ formatTimestamp(message.message.timestamp) }}</span>
+
+              <!-- Display Comments -->
+              <div v-if="message.comments && message.comments.length" class="message-comments">
+                <div 
+                  class="comment-bubble" 
+                  v-for="comment in message.comments" 
+                  :key="comment.commID"
+                  :class="{'own-comment': isOwnComment(comment.senderID)}">
+                  <strong>{{ comment.sendUsername }}:</strong> {{ comment.emoji }}
+                
+                  <!-- Delete button for own comments using SVG icon -->
+                  <button v-if="isOwnComment(comment.senderID)" @click.stop="deleteComment(comment)" class="delete-button">
+                    <svg class="feather"><use href="/feather-sprite-v4.29.0.svg#trash"></use></svg>
+                  </button>
+                </div>
+              </div>
 
             </div>
           </li>
@@ -45,15 +61,20 @@
           <h3>Users</h3>
         </template>
       </Search>
+      <!-- Modal for commenting a message -->
+      <Comment :show="commentModalVisible" :msg="selectedMessage" @close="toggleCommentModal" @emoji-selected="commentMessage" />
     </div>
+    
   </template>
   
   <script>
   import Search from '@/components/Search.vue';
+  import Comment from '@/components/Comment.vue';
 
   export default {
     components: {
-      Search
+      Search,
+      Comment
     },
     props: ['id'],
     data() {
@@ -68,10 +89,15 @@
         selectedMessage: null, // Messaggio selezionato per le opzioni
         errormsg: '', // Messaggio di errore
         searchModalVisible: false,  //mostra modale ricerca utenti
+        commentModalVisible: false, //mostra modale commento
       };
     },
     methods: {
       isOwnMessage(senderID) {
+        const userID = sessionStorage.getItem('id');
+        return String(senderID) === String(userID);
+      },
+      isOwnComment(senderID) {
         const userID = sessionStorage.getItem('id');
         return String(senderID) === String(userID);
       },
@@ -93,6 +119,7 @@
           });
           this.messages = response.data;
           if (!this.messages) this.messages = [];
+          
         } catch (error) {
           this.errormsg = error.response?.data?.message || 'Error fetching messages';
           console.error('Error fetching messages:', error);
@@ -162,10 +189,72 @@
       },
 
       toggleSearchModal() {
-        
         this.searchModalVisible = !this.searchModalVisible;
       },
-  
+      toggleCommentModal() {
+        this.commentModalVisible = !this.commentModalVisible;
+      },
+      async commentMessage(emoji) {
+        this.errormsg = '';
+        const userID = sessionStorage.getItem('id');
+        const token = sessionStorage.getItem('token');
+        try {
+          let response = await this.$axios.put(`/profiles/${userID}/conversations/${this.selectedMessage.convoID}/messages/${this.selectedMessage.msgID}/comments`, {emoji: emoji}, {
+            headers: { 'Authorization': token }
+          });
+          if (response.status === 200) {
+            this.selectedMessage.emoji = emoji;
+            this.toggleCommentModal();
+            this.closeModal();
+          }
+          
+        } catch (error) {
+          this.errormsg = error.response?.data?.message || 'Error commenting message';
+          console.error('Error commenting message:', error);
+        }
+      },
+      async deleteComment(comment) {
+        this.errormsg = '';
+        const userID = sessionStorage.getItem('id');
+        const token = sessionStorage.getItem('token');
+        try {
+          let response = await this.$axios.delete(`/profiles/${userID}/conversations/${this.destID}/messages/${comment.msgID}/comments/${comment.commID}`, {
+            headers: { 'Authorization': token }
+          });
+          
+          
+        } catch (error) {
+          this.errormsg = error.response?.data?.message || 'Error deleting comment';
+          console.error('Error deleting comment:', error);
+        }
+      },
+      /*
+      async getMessageComments(msgID) {
+        for (let message of this.messages) {
+          try {
+            const userID = sessionStorage.getItem('id'); 
+            const token = sessionStorage.getItem('token'); 
+          
+            let response = await this.$axios.get(
+              `/profiles/${userID}/conversations/${this.destID}/messages/${message.msgID}/comments`,
+              { headers: { 'Authorization': token } }
+            );
+          
+            if (response.status === 200) {
+              // Convert API response to match our frontend structure
+              const formattedComments = response.data.map(commentObj => ({
+                username: commentObj.sendUser.username,
+                emoji: commentObj.comment.emoji,
+                commentID: commentObj.comment.commentID
+              }));
+              
+            }
+          } catch (error) {
+            console.error(`Error fetching comments for message ${message.msgID}:`, error);
+          }
+        }
+      },
+      */
       async forwardMessage(destUser) {
         this.errormsg = '';
         const userID = sessionStorage.getItem('id');
@@ -384,4 +473,38 @@
     background-color: #9e9e9e;
     color: white;
   }
+  .message-comments {
+    margin-top: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .comment-bubble {
+   background-color: #f0f0f0; /* Light gray */
+   padding: 8px;
+   margin-top: 4px;
+   border-radius: 8px;
+   font-size: 14px;
+   display: inline-block;
+  }
+  .delete-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.delete-button svg {
+  width: 16px;
+  height: 16px;
+  transition: fill 0.2s ease-in-out;
+}
+
+.delete-button:hover svg {
+  fill: #cc0000;
+}
   </style>
