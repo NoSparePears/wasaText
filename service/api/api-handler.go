@@ -17,6 +17,8 @@ func (rt *_router) Handler() http.Handler {
 
 	rt.router.PUT("/profiles/:userID/photo", rt.wrap(rt.setMyPhoto, true))
 
+	rt.router.GET("/profiles/:userID/photo", rt.wrap(rt.getMyPhoto, true))
+
 	rt.router.GET("/profiles/:userID/conversations", rt.wrap(rt.getMyConversations, true))
 
 	rt.router.PUT("/profiles/:userID/conversations/:destID", rt.wrap(rt.createConversation, true))

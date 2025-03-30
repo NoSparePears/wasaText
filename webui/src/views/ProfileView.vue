@@ -14,14 +14,33 @@
     </section>
 
     <div class="pfp-view">
-      <!-- Sezione Immagine profilo a destra -->
+
+      <!-- Edit Button on the Left -->
+      <button @click="openPhotoModal" class="edit-btn">
+        <svg class="feather"><use href="/feather-sprite-v4.29.0.svg#edit-2"></use></svg>
+      </button>
+      <!-- Profile Picture Section ["/feather-sprite-v4.29.0.svg#edit-2"]-->
       <section class="profile-picture">
-        <img :src="`data:image/jpg;base64,${profilePicture}`" class="profile-pic">        
+        <img v-if="profilePicture" :src="profilePicture" alt="Profile Picture" class="pfp-img" />
       </section>
-      <div class="pfp-button">
-        <button @click="openPhotoModal">
-          <svg class="feather"><use href="/feather-sprite-v4.29.0.svg#edit-2"></use></svg>
-        </button>
+  
+      <!-- Modal for Updating Profile Picture -->
+      <div v-if="isPhotoModalOpen" class="modal">
+        <div class="modal-content">
+          <span @click="closePhotoModal" class="close">&times;</span>
+          <h2>Modifica Foto Profilo</h2>
+
+          <!-- Image Preview -->
+          <div v-if="previewImage">
+            <img :src="previewImage" alt="Anteprima" class="preview-img" />
+          </div>
+
+          <!-- File Upload Input -->
+          <input type="file" @change="previewPhoto" accept="image/*">
+
+          <!-- Save Button -->
+          <button @click="updatePhoto">Salva</button>
+        </div>
       </div>
     </div>
   </div>
@@ -54,15 +73,38 @@
 export default {
   data() {
     return {
-      profilePicture: sessionStorage.photo, // Percorso di default
+      errorMsg: "", // Messaggio di errore
+
       username: sessionStorage.username, // Username dell'utente dal database
       newUsername: "", // Nuovo nome utente da inviare
       isUsernameModalOpen: false, // Stato per il modale dello username
+      
+      profilePicture: '', // Foto del profilo
+      previewImage: null, // Stores preview image before upload
+      selectedFile: null, // Stores selected file
       isPhotoModalOpen: false, // Stato per il modale della foto
-      errorMsg: "" // Messaggio di errore
+      
     };
   },
   methods: {
+    async getProfilePicture() {
+      const userID = sessionStorage.getItem('id');
+      const token = sessionStorage.getItem('token');
+      try {
+        // Fai una chiamata API per ottenere la foto del profilo
+        const response = await this.$axios.get(`/profiles/${userID}/photo`, 
+          { headers: { 'Authorization': token } 
+        });
+        // Extract base64 data from response
+        if (response.data && response.data.profile_picture) {
+          this.profilePicture = `data:image/jpeg;base64,${response.data.profile_picture}`;
+        } else {
+          console.error("Profile picture data is missing in the response");
+        }
+      } catch (error) {
+        console.error("Errore nel recupero della foto del profilo:", error);
+      }
+    },
     // Apri il modale per modificare lo username
     openUsernameModal() {
       this.isUsernameModalOpen = true;
@@ -77,7 +119,7 @@ export default {
       if (this.newUsername !== this.username) {
         try {
           // Fai una chiamata API per aggiornare lo username nel database
-          await this.$axios.put(`/profiles/${sessionStorage.id}/username`, { username: this.newUsername }, { headers: { 'Authorization': `${sessionStorage.token}` } })
+          await this.$axios.put(`/profiles/${sessionStorage.getItem('id')}/username`, { username: this.newUsername }, { headers: { 'Authorization': sessionStorage.getItem('token') } })
           // Aggiorna lo username nel frontend
           sessionStorage.username = this.newUsername; // Salva nel sessionStorage
           this.username = this.newUsername
@@ -99,133 +141,187 @@ export default {
     // Chiudi il modale della foto
     closePhotoModal() {
       this.isPhotoModalOpen = false;
+      this.previewImage = null;
+      this.selectedFile = null;
     },
-    // Funzione per caricare l'anteprima della foto
+    // Preview selected image
     previewPhoto(event) {
       const file = event.target.files[0];
       if (file) {
+        this.selectedFile = file;
         const reader = new FileReader();
         reader.onload = (e) => {
-          this.profilePicture = e.target.result; // Mostra l'anteprima della nuova foto
+          this.previewImage = e.target.result; // Show preview
         };
         reader.readAsDataURL(file);
       }
     },
-    // Funzione per aggiornare la foto del profilo
+    // Upload and update profile picture
     async updatePhoto() {
-      try {
-        const formData = new FormData();
-        formData.append('photo', this.$refs.fileInput.files[0]);
+      if (!this.selectedFile) {
+        alert("Seleziona un'immagine prima di salvare!");
+        return;
+      }
 
-        const response = await fetch(`/profiles/${sessionStorage.userID}/photo`, {
-          method: 'PUT',
-          body: formData,
+      const userID = sessionStorage.getItem('id');
+      const token = sessionStorage.getItem('token');
+
+      const formData = new FormData();
+      formData.append("profile_picture", this.selectedFile);
+
+      try {
+        const response = await this.$axios.put(`/profiles/${userID}/photo`, formData, {
+          headers: {
+            "Authorization": token,
+            "Content-Type": "multipart/form-data"
+          }
         });
 
-        if (response.ok) {
-          const data = await response.json();
-          this.profilePicture = data.newPhotoUrl; // Aggiorna l'URL della foto del profilo
-          sessionStorage.setItem('photo', this.profilePicture); // Salva nel sessionStorage
-          this.closePhotoModal(); // Chiudi il modale
-        } else {
-          const error = await response.json();
-          this.errorMsg = error.message || "Errore durante l'aggiornamento della foto!";
-        }
+        this.getProfilePicture();
+        
+        this.closePhotoModal(); // Close modal after success
       } catch (error) {
-        this.errorMsg = "Errore di rete!";
+        console.error("Errore nel caricamento della foto:", error);
       }
     }
-  }
+  },
+  mounted() {
+      // Se l'utente non è loggato, reindirizza alla pagina di login
+      if (!sessionStorage.getItem('token')) {
+        this.$router.push("/");
+        return;
+      }
+      this.getProfilePicture();
+      
+    },
 };
 </script>
 
-<style scoped>
-/* Imposta la struttura a colonna per evitare problemi di posizionamento */
+<style>
+body {
+  font-family: Arial, sans-serif;
+  background-color: #f3f4f6;
+  color: #333;
+}
+.header {
+  background: #ffffff;
+  padding: 15px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+  text-align: center;
+}
 .profile-view {
-  text-align: left;
   display: flex;
-  flex-direction: column-reverse; /* Organizza gli elementi in colonna */
-  align-items: left; /* Allinea tutto al centro */
+  justify-content: space-between;
+  align-items: center;
+  padding: 20px;
+  background: white;
+  margin: 20px auto;
+  border-radius: 10px;
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
 }
-
-.pfp-button {
-  position: relative;
-  left: 120px;
-}
-
-.pfp-button button {
-  background: none;
-  border: none;
-  cursor: pointer; 
-}
-
-.profile-pic {
-  width: 100px; /* Dimensione regolabile */
-  height: 100px;
-  border-radius: 50%; /* Trasforma in cerchio */
-  object-fit: cover; /* Ritaglia l'immagine senza distorsioni */
-  border: 2px solid #ccc; /* Bordo opzionale */
-}
-
-.username {
-  text-align: left;
-  margin-top: 50px;
-}
-
 .username-button {
   display: flex;
   align-items: center;
-  gap: 5px; /* Spazio tra bottone e testo */
+  gap: 10px;
 }
-
-.username-button button {
-  background: none;
+.icon-button {
+  background: transparent;
   border: none;
   cursor: pointer;
+  padding: 5px;
+}
+.pfp-view {
+  display: flex;
+  align-items: center;
+  gap: 10px; /* Space between profile pic & button */
 }
 
-/* Stili per il modale */
-.modal {
+.profile-picture {
+  width: 100px;  /* Circle size */
+  height: 100px;
+  border-radius: 50%; /* Makes it a circle */
+  overflow: hidden; /* Prevents image from spilling out */
   display: flex;
   justify-content: center;
   align-items: center;
+  background-color: #f0f0f0; /* Background color (optional) */
+}
+
+.pfp-img {
+  width: 120%; /* Ensures full coverage */
+  height: 120%;
+  object-fit: cover; /* Ensures image fits without stretching */
+}
+
+/* Edit Button */
+.edit-btn {
+  display: block;
+  margin-top: 10px;
+  background-color: #007bff;
+  color: white;
+  padding: 5px 10px;
+  border: none;
+  cursor: pointer;
+  border-radius: 5px;
+}
+.edit-btn:hover {
+  background-color: #0056b3;
+}
+
+/* Modal Styling */
+.modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background-color: rgba(0, 0, 0, 0.5);
+  background: rgba(0, 0, 0, 0.5);
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 .modal-content {
-  background-color: white;
+  background: white;
   padding: 20px;
-  border-radius: 5px;
-  width: 300px;
+  border-radius: 10px;
   text-align: center;
+  max-width: 400px;
 }
 
 .close {
   position: absolute;
   top: 10px;
-  right: 10px;
+  right: 15px;
+  font-size: 24px;
   cursor: pointer;
 }
 
-/* Messaggio di errore */
-.error-msg {
-  color: red;
-  font-size: 14px;
+/* Preview Image */
+.preview-img {
+  width: 100px;
+  height: 100px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-top: 10px;
 }
-.error-message {
-    color: red;
-    font-weight: bold;
+.input-field, .input-file {
+  width: 100%;
+  padding: 10px;
+  margin: 10px 0;
+  border: 1px solid #ddd;
+  border-radius: 5px;
 }
-
-.success-message {
-    color: green;
-    font-weight: bold;
+.primary-button {
+  background: #0088cc;
+  color: white;
+  padding: 10px 15px;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
 }
-
+.primary-button:hover {
+  background: #0077b3;
+}
 </style>
 

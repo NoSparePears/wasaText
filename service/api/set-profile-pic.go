@@ -1,95 +1,95 @@
 package api
 
 import (
-	"encoding/json"
+	"fmt"
+	"image"
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 
+	_ "image/jpeg" // Required for decoding JPEG files
+	_ "image/png"  // Required for decoding PNG files
+
 	"wasaText/service/api/reqcontext"
-	"wasaText/service/api/utils"
 
 	"github.com/julienschmidt/httprouter"
 )
 
-// rt.router.PUT("/profiles/:userID/photo", rt.wrap(rt.setMyPhoto, true))
+// Route: PUT /profiles/:userID/photo
 func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 
+	// Parse userID
 	userID, err := strconv.Atoi(ps.ByName("userID"))
 	if err != nil {
-		http.Error(w, "Bad Request"+err.Error(), http.StatusBadRequest)
+		http.Error(w, "Invalid user ID: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
+	// Check if user is authorized
 	if userID != ctx.UserId {
-		Forbidden(w, err, ctx, "Unauthorized")
+		Forbidden(w, nil, ctx, "Unauthorized")
 		return
 	}
 
-	// Parse the multipart form
-	err = r.ParseMultipartForm(5 << 20) // maxMemory 5MB
+	// Parse multipart form (limit: 5MB)
+	err = r.ParseMultipartForm(5 << 20)
 	if err != nil {
-		http.Error(w, "Bad Request "+err.Error(), http.StatusBadRequest)
+		http.Error(w, "Error parsing form: "+err.Error(), http.StatusBadRequest)
 		return
 	}
 
-	// Access the photo key
-	// The photo key is the name of the file input in the HTML form
-	// If the key is not present an error is returned
-	file, _, err := r.FormFile("image")
+	// Retrieve the uploaded file
+	file, _, err := r.FormFile("profile_picture") // No need for `header`
 	if err != nil {
-		http.Error(w, "Bad Request "+err.Error(), http.StatusBadRequest)
+		BadRequest(w, err, ctx, "Invalid file upload")
+		return
+	}
+	defer file.Close()
+
+	// Validate image format
+	_, format, err := image.Decode(file) // Only checking format
+	if err != nil || (format != "jpeg" && format != "png") {
+		BadRequest(w, err, ctx, "Invalid image file (must be JPG or PNG)")
 		return
 	}
 
-	// Read the file
-	data, err := io.ReadAll(file)
+	// Reset file reader (needed after decoding)
+	file.Seek(0, io.SeekStart)
+
+	// Define storage path
+	uploadPath := fmt.Sprintf("./storage/%d/media/", userID)
+	if err := os.MkdirAll(uploadPath, os.ModePerm); err != nil {
+		InternalServerError(w, err, ctx)
+		return
+	}
+
+	// Always save as JPG (convert PNG if necessary)
+	newFilePath := filepath.Join(uploadPath, "profile.jpg")
+
+	// Create output file
+	outFile, err := os.Create(newFilePath)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("error parse file")
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		InternalServerError(w, err, ctx)
 		return
 	}
+	defer outFile.Close()
 
-	fileType := http.DetectContentType(data)
-	if fileType != "image/jpeg" {
-		http.Error(w, "Bad Request wrong file type", http.StatusBadRequest)
-		return
-	}
-
-	defer func() { err = file.Close() }()
-
-	// Create the file
-	path := utils.GetProfilePicPath(userID)
-	err = os.WriteFile(path, data, 0644)
+	// Copy the file to storage
+	_, err = io.Copy(outFile, file)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("error saving image")
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		InternalServerError(w, err, ctx)
 		return
 	}
 
-	// Crop the image
-	err = utils.SaveAndCrop(path, 250, 250)
+	// Update database with new profile picture path
+	err = rt.db.UpdateUserPhotoPath(userID, newFilePath)
 	if err != nil {
-		ctx.Logger.WithError(err).Error("error saving or cropping image")
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		InternalServerError(w, err, ctx)
 		return
 	}
 
-	// Prepare the response
-	type ProfilePic struct {
-		ProfilePic64 string `json:"profilePic64"`
-	}
-
-	propic64, err := utils.ImageToBase64(path)
-	pic := ProfilePic{ProfilePic64: propic64}
-
-	// Return the new post
-	w.WriteHeader(http.StatusCreated)
-	if err := json.NewEncoder(w).Encode(pic); err != nil {
-		ctx.Logger.WithError(err).Error("error encoding proPic path")
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
-		return
-	}
+	w.WriteHeader(http.StatusOK)
 
 }

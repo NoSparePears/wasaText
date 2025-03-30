@@ -47,6 +47,11 @@ type AppDatabase interface {
 	// ChangeUsername allows to set/change username
 	ChangeUsername(user_id int, name string) error
 
+	// GetUserPhoto returns the base64 encoded photo of the user
+	GetUserPhotoPath(userID int) (string, error)
+
+	UpdateUserPhotoPath(userID int, photoPath string) error
+
 	// Search user by username
 	SearchUser(username string) (structs.User, error)
 
