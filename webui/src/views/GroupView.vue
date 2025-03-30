@@ -25,6 +25,23 @@
                       <span class="message-timestamp">{{ formatTimestamp(msg.message.timestamp) }}</span>
                     </div>
                     <div v-else class="message-timestamp">{{ formatTimestamp(msg.message.timestamp) }}</div>
+
+                    <!-- Display Comments -->
+                    <div v-if="msg.comments && msg.comments.length" class="message-comments">
+                      <div 
+                        class="comment-bubble" 
+                        v-for="comment in msg.comments" 
+                        :key="comment.commID"
+                        :class="{'own-comment': isOwnComment(comment.senderID)}">
+                        <strong>{{ comment.sendUsername }}:</strong> {{ comment.emoji }}
+
+                        <!-- Delete button for own comments using SVG icon -->
+                        <button v-if="isOwnComment(comment.senderID)" @click.stop="deleteComment(comment)" class="delete-button">
+                          <svg class="feather"><use href="/feather-sprite-v4.29.0.svg#trash"></use></svg>
+                        </button>
+                      </div>
+                    </div>
+                  
                   </div>
                 </li>
             </ul>
@@ -45,27 +62,20 @@
                 <button @click="closeModal" class="btn btn-secondary">Cancel</button>
             </div>
         </div>
-
-        <!-- Modal for searching users to whom forward a message -->
-        <Search :show="searchModalVisible" @close="toggleSearchModal" @user-selected="forwardMessage" title="search">
-            <template v-slot:header>
-                <h3>Users</h3>
-            </template>
-        </Search>
-
-
-
-
+        <!-- Modal for commenting a message -->
+        <Comment :show="commentModalVisible" :msg="selectedMessage" @close="toggleCommentModal" @emoji-selected="commentMessage" />
 
     </div>
 </template>
 
 <script>
 import Search from '@/components/Search.vue';
+import Comment from '@/components/Comment.vue';
 
 export default {
     components: {
-        Search
+        Search, 
+        Comment
     },
     data() {
         return {
@@ -79,6 +89,7 @@ export default {
             selectedMessage: null, // Messaggio selezionato per le opzioni
             errormsg: '', // Messaggio di errore
             searchModalVisible: false,  //mostra modale ricerca utenti
+            commentModalVisible: false, //mostra modale commento
         }
     },
     methods: {
@@ -113,11 +124,12 @@ export default {
           const userID = sessionStorage.getItem('id');
           const token = sessionStorage.getItem('token');
           try {
-              let response = await this.$axios.get(`/profiles/${userID}/groups/${this.groupID}/messages`, {
-          headers: { 'Authorization': sessionStorage.getItem('token') }
+            let response = await this.$axios.get(`/profiles/${userID}/groups/${this.groupID}/messages`, {
+              headers: { 'Authorization': sessionStorage.getItem('token') }
           });
           this.messages = response.data;
           if (!this.messages) this.messages = [];
+
           } catch (error) {
               this.errormsg = error.response?.data?.message || 'Error fetching messages';
               console.error('Error fetching messages:', error);
@@ -139,6 +151,10 @@ export default {
       isOwnMessage(senderID) {
           const userID = sessionStorage.getItem('id');
           return String(senderID) === String(userID);
+      },
+      isOwnComment(senderID) {
+        const userID = sessionStorage.getItem('id');
+        return String(senderID) === String(userID);
       },
       formatTimestamp(timestamp) {
         if (!timestamp) return "";
@@ -178,6 +194,43 @@ export default {
       },
       toggleSearchModal() {
           this.searchModalVisible = !this.searchModalVisible;
+      },
+      toggleCommentModal() {
+        this.commentModalVisible = !this.commentModalVisible;
+      },
+      async commentMessage(emoji) {
+        this.errormsg = '';
+        const userID = sessionStorage.getItem('id');
+        const token = sessionStorage.getItem('token');
+        try {
+          let response = await this.$axios.put(`/profiles/${userID}/conversations/${this.selectedMessage.convoID}/messages/${this.selectedMessage.msgID}/comments`, {emoji: emoji}, {
+            headers: { 'Authorization': token }
+          });
+          if (response.status === 200) {
+            this.selectedMessage.emoji = emoji;
+            this.toggleCommentModal();
+            this.closeModal();
+          }
+          
+        } catch (error) {
+          this.errormsg = error.response?.data?.message || 'Error commenting message';
+          console.error('Error commenting message:', error);
+        }
+      },
+      async deleteComment(comment) {
+        this.errormsg = '';
+        const userID = sessionStorage.getItem('id');
+        const token = sessionStorage.getItem('token');
+        try {
+          let response = await this.$axios.delete(`/profiles/${userID}/conversations/${this.groupID}/messages/${comment.msgID}/comments/${comment.commID}`, {
+            headers: { 'Authorization': token }
+          });
+          
+          
+        } catch (error) {
+          this.errormsg = error.response?.data?.message || 'Error deleting comment';
+          console.error('Error deleting comment:', error);
+        }
       },
       goToInfo() {
           console.log('Navigating to group info');
@@ -372,4 +425,38 @@ export default {
     background-color: #9e9e9e;
     color: white;
   }
+  .message-comments {
+    margin-top: 5px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+  }
+
+  .comment-bubble {
+   background-color: #f0f0f0; /* Light gray */
+   padding: 8px;
+   margin-top: 4px;
+   border-radius: 8px;
+   font-size: 14px;
+   display: inline-block;
+  }
+  .delete-button {
+  background: none;
+  border: none;
+  cursor: pointer;
+  padding: 0;
+  margin-left: 8px;
+  display: flex;
+  align-items: center;
+}
+
+.delete-button svg {
+  width: 16px;
+  height: 16px;
+  transition: fill 0.2s ease-in-out;
+}
+
+.delete-button:hover svg {
+  fill: #cc0000;
+}
   </style>

@@ -41,8 +41,9 @@ func (rt *_router) getGroupMessages(w http.ResponseWriter, r *http.Request, ps h
 	}
 
 	type response struct {
-		Message structs.Message `json:"message"`
-		User    structs.User    `json:"user"`
+		Message  structs.Message   `json:"message"`
+		User     structs.User      `json:"user"`
+		Comments []structs.Comment `json:"comments"`
 	}
 
 	var messages []response
@@ -54,10 +55,22 @@ func (rt *_router) getGroupMessages(w http.ResponseWriter, r *http.Request, ps h
 			InternalServerError(w, err, ctx)
 			return
 		}
-		// Simply append each message to the response slice
+
+		// Get comments for each message
+		comments, err := rt.db.GetMessageComments(dbMessage.MsgID, dbMessage.ConvoID)
+		if err != nil {
+			ctx.Logger.WithError(err).Error("Error getting comments")
+			InternalServerError(w, err, ctx)
+			return
+		}
+		if comments == nil {
+			comments = []structs.Comment{}
+		}
+
 		messages = append(messages, response{
-			Message: dbMessage,
-			User:    user,
+			Message:  dbMessage,
+			User:     user,
+			Comments: comments,
 		})
 	}
 	// response
