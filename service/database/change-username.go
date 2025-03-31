@@ -13,7 +13,7 @@ func (db *appdbimpl) ChangeUsername(userID int, newUsername string) error {
 		return errors.New("internal server error") // Error while checking the username
 	}
 	if taken {
-		return errors.New("Username already taken. Please choose another one.") // Username already taken
+		return errors.New("username already taken. Please choose another one") // Username already taken
 	}
 
 	// Update the username in the database
