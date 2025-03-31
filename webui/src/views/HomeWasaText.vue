@@ -198,14 +198,15 @@ export default {
           });
         
         if (!this.groups) this.groups = [];
-        this.groups.push(response.data.group);  
+        this.groups.push(response.data);  
         
         this.toggleGroupModal();  
-        this.openGroup(response.data.group);
+        this.openGroup(response.data);
         
         
       } catch (error) {
-        
+        console.error("Error creating group:", error);
+        this.errormsg = error.response?.data?.message || "Failed to create group.";
       }
       
       

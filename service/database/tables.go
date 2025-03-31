@@ -59,7 +59,7 @@ var sql_COMMTABLE = `CREATE TABLE IF NOT EXISTS Comment (
   senderID NOT NULL,
   emoji TEXT NOT NULL,
   
-  CONSTRAINT fk_convo FOREIGN KEY (msgID) REFERENCES Message(mssgID),
+  CONSTRAINT fk_convo FOREIGN KEY (msgID) REFERENCES Message(msgID),
   CONSTRAINT fk_user FOREIGN KEY (senderID) REFERENCES User(userID),
   
   UNIQUE (commID, msgID)

@@ -16,52 +16,46 @@ import (
 func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	userID, err := strconv.Atoi(ps.ByName("userID"))
 	if err != nil {
-		BadRequest(w, err, ctx, "Invalid userID")
+		BadRequest(w, err, ctx, "Invalid userID format")
 		return
 	}
 	if userID != ctx.UserId {
-		Forbidden(w, err, ctx, "Unauthorized")
+		Forbidden(w, errors.New("unauthorized"), ctx, "You are not allowed to create a group for this user")
 		return
 	}
 
-	// Ensure it's a POST request
-	if r.Method != http.MethodPost {
-		http.Error(w, "Invalid request method", http.StatusMethodNotAllowed)
+	// Read and parse request body
+	defer r.Body.Close() // Ensure body is closed even if parsing fails
+
+	body, err := io.ReadAll(r.Body)
+	if err != nil {
+		BadRequest(w, err, ctx, "Failed to read request body")
 		return
 	}
 
-	type groupRequest struct {
+	var input struct {
 		Name    string         `json:"name"`
 		Members []structs.User `json:"members"`
 	}
 
-	// Read the request body
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, "Failed to read request body", http.StatusBadRequest)
+	if err = json.Unmarshal(body, &input); err != nil {
+		BadRequest(w, err, ctx, "Invalid JSON format")
 		return
 	}
-	defer r.Body.Close()
 
-	// Parse JSON
-	var input groupRequest
-	err = json.Unmarshal(body, &input)
-	if err != nil {
-		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
-		return
-	}
-	// check provided string
 	if input.Name == "" {
-		BadRequest(w, errors.New("string is required"), ctx, "Missing group's name")
+		BadRequest(w, errors.New("missing group name"), ctx, "Group name is required")
 		return
 	}
 
-	// create globalConvoTable con isGroup = 1 e groupname = input da frontend, inoltre crea la groupMemberTable con userID = userID
+	// Create group in database
 	group, err := rt.db.CreateGroup(input.Name, userID)
 	if err != nil {
 		InternalServerError(w, err, ctx)
 		return
 	}
+
+	// Retrieve creator details
 	creator, err := rt.db.SearchUserID(userID)
 	if err != nil {
 		InternalServerError(w, err, ctx)
@@ -70,24 +64,20 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 	group.Members = append(group.Members, creator)
 	group.GroupName = input.Name
 
-	// create membertable per ogni selectedUser da frontend
+	// Add selected users to group
 	for _, member := range input.Members {
-		err = rt.db.AddToGroup(member.ID, group.GlobalConvoID)
-		if err != nil {
+		if err := rt.db.AddToGroup(member.ID, group.GlobalConvoID); err != nil {
 			InternalServerError(w, err, ctx)
 			return
 		}
 		group.Members = append(group.Members, member)
 	}
 
-	// set response header for json content
+	// Set response headers and send JSON response
 	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusOK)
-	// encode user in json
 	if err = json.NewEncoder(w).Encode(group); err != nil {
 		ctx.Logger.WithError(err).Error("Error encoding response")
-		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		return
 	}
-
 }
