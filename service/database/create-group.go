@@ -2,6 +2,11 @@ package database
 
 import (
 	"errors"
+	"fmt"
+	"io"
+	"os"
+	"path/filepath"
+	"wasaText/service/api/utils"
 	"wasaText/service/structs"
 )
 
@@ -44,6 +49,44 @@ func (db *appdbimpl) CreateGroup(groupName string, userID int) (structs.Group, e
 	}
 	if rowsAffected == 0 {
 		return structs.Group{}, errors.New("no rows were inserted, possible issue with groupID or userID")
+	}
+
+	// Create group folder
+	userStoragePath := fmt.Sprintf("./storage/%d/media", group.GlobalConvoID)
+	if err := os.MkdirAll(userStoragePath, os.ModePerm); err != nil {
+		return group, err
+	}
+
+	// Set default profile picture
+	defaultPfp := "./storage/default_propic.jpg"
+	profilePicPath := utils.GetProfilePicPath(group.GlobalConvoID)
+
+	// Ensure the parent directory exists
+	if err := os.MkdirAll(filepath.Dir(profilePicPath), os.ModePerm); err != nil {
+		return group, err
+	}
+
+	// Copy default profile picture
+	source, err := os.Open(defaultPfp)
+	if err != nil {
+		return group, err
+	}
+	defer source.Close()
+
+	destination, err := os.Create(profilePicPath)
+	if err != nil {
+		return group, err
+	}
+	defer destination.Close()
+
+	if _, err = io.Copy(destination, source); err != nil {
+		return group, err
+	}
+
+	// Store profile picture **path** in the database instead of Base64
+	_, err = db.c.Exec("UPDATE GlobalConversation SET photoPath = ? WHERE globalConvoID = ?;", profilePicPath, group.GlobalConvoID)
+	if err != nil {
+		return group, err
 	}
 
 	return group, nil

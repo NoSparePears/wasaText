@@ -61,5 +61,7 @@ func (rt *_router) Handler() http.Handler {
 
 	rt.router.PUT("/profiles/:userID/groups/:groupID/g_photo", rt.wrap(rt.setGroupPhoto, true))
 
+	rt.router.GET("/profiles/:userID/groups/:groupID/g_photo", rt.wrap(rt.getGroupPhoto, true))
+
 	return rt.router
 }

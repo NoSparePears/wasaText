@@ -81,7 +81,7 @@ export default {
         return {
             name: this.$route.query.name || "Unknown",
             groupID: this.$route.query.groupID,
-            avatar: this.$route.query.avatar || "default_propic.jpg",
+            avatar: '',
             messages: [], // Lista dei messaggi
             text: null, // Testo del messaggio da inviare
             photo: null, // Foto da inviare
@@ -118,6 +118,24 @@ export default {
               this.errormsg = error;
               console.error('Error sending message:', error);
           }
+      },
+      async getProfilePicture() {
+        const userID = sessionStorage.getItem('id');
+        const token = sessionStorage.getItem('token');
+        try {
+          // Fai una chiamata API per ottenere la foto del profilo
+          const response = await this.$axios.get(`/profiles/${userID}/groups/${this.groupID}/g_photo`, 
+            { headers: { 'Authorization': token } 
+          });
+          // Extract base64 data from response
+          if (response.data && response.data.profile_picture) {
+            this.avatar = `data:image/jpeg;base64,${response.data.profile_picture}`;
+          } else {
+            console.error("Profile picture data is missing in the response");
+          }
+        } catch (error) {
+          console.error("Errore nel recupero della foto del profilo:", error);
+        }
       },
       async fetchMessages() {
           this.errormsg = '';
@@ -255,6 +273,7 @@ export default {
         this.$router.push("/");
         return;
       }
+      this.getProfilePicture();
       this.fetchMessages();
       this.intervalId = setInterval(async () => {
         clearInterval(this.intervalId);

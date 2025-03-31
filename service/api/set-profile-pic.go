@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"image"
 	"io"
+	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -56,7 +57,9 @@ func (rt *_router) setMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 	}
 
 	// Reset file reader (needed after decoding)
-	file.Seek(0, io.SeekStart)
+	if _, err := file.Seek(0, io.SeekStart); err != nil {
+		log.Fatalf("failed to seek file: %v", err)
+	}
 
 	// Define storage path
 	uploadPath := fmt.Sprintf("./storage/%d/media/", userID)

@@ -48,8 +48,6 @@ func (rt *_router) getConversation(w http.ResponseWriter, r *http.Request, ps ht
 		return
 	}
 	destUser.ID = destID
-	/* IMPLEMENTA PER RICAVARE FOTO PROFILP
-	destUser.UserPropic64 = */
 
 	type response struct {
 		Convo    structs.Conversation `json:"conversation"`

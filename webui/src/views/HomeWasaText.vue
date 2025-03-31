@@ -63,31 +63,35 @@
 
       
     </div>
+
     <!-- Modal for creating a new group -->
     <div v-if="groupModalVisible" class="modal">
       <div class="modal-content">
         <h3>Create New Group</h3>
+      
+        <!-- Group Name Input -->
         <input v-model="groupName" type="text" placeholder="Enter group name..." class="input-field"/>
-        <input type="file" @change="handleImageUpload" accept="image/*" class="file-input" />
-        <button @click="useDefaultImage" class="default-image-button">Use Default Image</button>
-        
+      
+        <!-- User Selection -->
         <Search :show="searchModalVisible" @close="toggleSearchModal" @user-selected="addUserToGroup" title="search">
           <template v-slot:header>
             <h3>Select Users</h3>
           </template>
         </Search>
-        
+
         <ul>
           <li v-for="user in selectedUsers" :key="user.id">
             {{ user.username }}
           </li>
         </ul>
-        
+      
         <button @click="toggleSearchModal" class="button">Add Users</button>
         <button @click="createGroup" class="button">Done</button>
         <button @click="toggleGroupModal" class="button close-button">Cancel</button>
       </div>
     </div>
+
+    
   </div>
 </template>
 
@@ -189,15 +193,16 @@ export default {
       const userID = sessionStorage.getItem('id');
       const token = sessionStorage.getItem('token');
       try {
-        let response = await this.$axios.post(`/profiles/${userID}/groups`, {name: this.groupName, photo: this.groupImage, members: this.selectedUsers}, { 
+        let response = await this.$axios.post(`/profiles/${userID}/groups`, {name: this.groupName, members: this.selectedUsers}, { 
           headers: { 'Authorization': token } 
           });
         
         if (!this.groups) this.groups = [];
         this.groups.push(response.data.group);  
         
-        this.openGroup(response.data.group);
         this.toggleGroupModal();  
+        this.openGroup(response.data.group);
+        
         
       } catch (error) {
         
@@ -240,12 +245,6 @@ export default {
         this.errormsg = error.response?.data?.message || 'Error opening group';
         console.error('Error opening group:', error);
       }
-    },
-    handleImageUpload(event) {
-      this.groupImage = event.target.files[0];
-    },
-    useDefaultImage() {
-      this.groupImage = 'default-group-image.jpg';
     },
     addUserToGroup(user) {
       if (!this.selectedUsers.find(u => u.id === user.id)) {

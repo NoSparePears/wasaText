@@ -32,7 +32,6 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 
 	type groupRequest struct {
 		Name    string         `json:"name"`
-		Photo   string         `json:"photo"`
 		Members []structs.User `json:"members"`
 	}
 
@@ -69,7 +68,6 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 	group.Members = append(group.Members, creator)
-	group.GroupPropic64 = input.Photo
 	group.GroupName = input.Name
 
 	// create membertable per ogni selectedUser da frontend
@@ -82,18 +80,11 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 		group.Members = append(group.Members, member)
 	}
 
-	type response struct {
-		Group structs.Group `json:"group"`
-	}
-	resp := response{
-		Group: group,
-	}
-	// SCEGLI SE CREARE LA CONVO TABLE PER OGNI UTENTE ALL INTERNO DI ADDTOGROUP (LATO DB) OPPURE FAI LE CHIAMATE QUI
 	// set response header for json content
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
 	// encode user in json
-	if err = json.NewEncoder(w).Encode(resp); err != nil {
+	if err = json.NewEncoder(w).Encode(group); err != nil {
 		ctx.Logger.WithError(err).Error("Error encoding response")
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return

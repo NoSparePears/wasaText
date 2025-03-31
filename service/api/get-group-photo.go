@@ -10,7 +10,9 @@ import (
 	"github.com/julienschmidt/httprouter"
 )
 
-func (rt *_router) getMyPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
+// 	rt.router.GET("/profiles/:userID/groups/:groupID/g_photo", rt.wrap(rt.getGroupPhoto, true))
+
+func (rt *_router) getGroupPhoto(w http.ResponseWriter, r *http.Request, ps httprouter.Params, ctx reqcontext.RequestContext) {
 	// parse and validate userID
 	userID, err := strconv.Atoi(ps.ByName("userID"))
 	if err != nil {
@@ -18,8 +20,19 @@ func (rt *_router) getMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 		return
 	}
 
+	if userID != ctx.UserId {
+		Forbidden(w, err, ctx, "Unauthorized")
+		return
+	}
+
+	groupID, err := strconv.Atoi(ps.ByName("groupID"))
+	if err != nil {
+		BadRequest(w, err, ctx, "Invalid groupID")
+		return
+	}
+
 	// Get the photo from the database
-	pfpPath, err := rt.db.GetUserPhotoPath(userID)
+	pfpPath, err := rt.db.GetGroupPhotoPath(groupID)
 	if err != nil {
 		InternalServerError(w, err, ctx)
 		return
@@ -39,5 +52,11 @@ func (rt *_router) getMyPhoto(w http.ResponseWriter, r *http.Request, ps httprou
 
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	json.NewEncoder(w).Encode(response)
+
+	// encode user in json
+	if err = json.NewEncoder(w).Encode(response); err != nil {
+		ctx.Logger.WithError(err).Error("Error encoding response")
+		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
+		return
+	}
 }

@@ -30,14 +30,6 @@
           <span @click="closePhotoModal" class="close">&times;</span>
           <h2>Modifica Foto Profilo</h2>
 
-          <!-- Image Preview -->
-          <div v-if="previewImage">
-            <img :src="previewImage" alt="Anteprima" class="preview-img" />
-          </div>
-
-          <!-- File Upload Input -->
-          <input type="file" @change="previewPhoto" accept="image/*">
-
           <!-- Save Button -->
           <button @click="updatePhoto">Salva</button>
         </div>
@@ -61,7 +53,7 @@
     <div class="modal-content">
       <span @click="closePhotoModal" class="close">&times;</span>
       <h2>Modifica Foto Profilo</h2>
-      <input type="file" @change="previewPhoto">
+      <input type="file" @change="handleFileChange">
       <button @click="updatePhoto">Salva</button>
     </div>
   </div>
@@ -80,7 +72,6 @@ export default {
       isUsernameModalOpen: false, // Stato per il modale dello username
       
       profilePicture: '', // Foto del profilo
-      previewImage: null, // Stores preview image before upload
       selectedFile: null, // Stores selected file
       isPhotoModalOpen: false, // Stato per il modale della foto
       
@@ -141,20 +132,10 @@ export default {
     // Chiudi il modale della foto
     closePhotoModal() {
       this.isPhotoModalOpen = false;
-      this.previewImage = null;
       this.selectedFile = null;
     },
-    // Preview selected image
-    previewPhoto(event) {
-      const file = event.target.files[0];
-      if (file) {
-        this.selectedFile = file;
-        const reader = new FileReader();
-        reader.onload = (e) => {
-          this.previewImage = e.target.result; // Show preview
-        };
-        reader.readAsDataURL(file);
-      }
+    handleFileChange(event) {
+      this.selectedFile = event.target.files[0]; // Store selected file
     },
     // Upload and update profile picture
     async updatePhoto() {
@@ -177,7 +158,7 @@ export default {
           }
         });
 
-        this.getProfilePicture();
+        this.getProfilePicture(); // Refresh profile picture
         
         this.closePhotoModal(); // Close modal after success
       } catch (error) {
@@ -297,14 +278,7 @@ body {
   cursor: pointer;
 }
 
-/* Preview Image */
-.preview-img {
-  width: 100px;
-  height: 100px;
-  border-radius: 50%;
-  object-fit: cover;
-  margin-top: 10px;
-}
+
 .input-field, .input-file {
   width: 100%;
   padding: 10px;

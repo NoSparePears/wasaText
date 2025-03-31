@@ -111,6 +111,10 @@ type AppDatabase interface {
 	// It returns a list of all the groups
 	GetGroups(userID int) ([]structs.Group, error)
 
+	GetGroupPhotoPath(groupID int) (string, error)
+
+	UpdateGroupPhotoPath(groupID int, photoPath string) error
+
 	GetGroupMessages(groupID int, userID int) ([]structs.Message, error)
 
 	// It returns convo information for the group

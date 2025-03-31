@@ -1,7 +1,9 @@
 <template>
     <div class="chat-view">
       <header v-if="name">
-        <img :src="avatar" alt="User Avatar" class="avatar" />
+        <section class="profile-picture">
+          <img v-if="avatar" :src="avatar" alt="User Avatar" class="pfp-img" />
+        </section>
         <h2>{{ name }}</h2>
       </header>
       <div class="messages">
@@ -81,7 +83,7 @@
       return {
         name: this.$route.query.name || "Unknown",
         destID: this.$route.query.destID,
-        avatar: this.$route.query.avatar || "default_propic.jpg",
+        avatar: '',
         messages: [], // Lista dei messaggi
         text: null, // Testo del messaggio da inviare
         photo: null, // Foto da inviare
@@ -93,6 +95,24 @@
       };
     },
     methods: {
+      async getProfilePicture() {
+        const userID = this.destID;
+        const token = sessionStorage.getItem('token');
+        try {
+          // Fai una chiamata API per ottenere la foto del profilo
+          const response = await this.$axios.get(`/profiles/${userID}/photo`, 
+            { headers: { 'Authorization': token } 
+          });
+          // Extract base64 data from response
+          if (response.data && response.data.profile_picture) {
+            this.avatar = `data:image/jpeg;base64,${response.data.profile_picture}`;
+          } else {
+            console.error("Profile picture data is missing in the response");
+          }
+        } catch (error) {
+          console.error("Errore nel recupero della foto del profilo:", error);
+        }
+      },
       isOwnMessage(senderID) {
         const userID = sessionStorage.getItem('id');
         return String(senderID) === String(userID);
@@ -228,33 +248,6 @@
           console.error('Error deleting comment:', error);
         }
       },
-      /*
-      async getMessageComments(msgID) {
-        for (let message of this.messages) {
-          try {
-            const userID = sessionStorage.getItem('id'); 
-            const token = sessionStorage.getItem('token'); 
-          
-            let response = await this.$axios.get(
-              `/profiles/${userID}/conversations/${this.destID}/messages/${message.msgID}/comments`,
-              { headers: { 'Authorization': token } }
-            );
-          
-            if (response.status === 200) {
-              // Convert API response to match our frontend structure
-              const formattedComments = response.data.map(commentObj => ({
-                username: commentObj.sendUser.username,
-                emoji: commentObj.comment.emoji,
-                commentID: commentObj.comment.commentID
-              }));
-              
-            }
-          } catch (error) {
-            console.error(`Error fetching comments for message ${message.msgID}:`, error);
-          }
-        }
-      },
-      */
       async forwardMessage(destUser) {
         this.errormsg = '';
         const userID = sessionStorage.getItem('id');
@@ -307,6 +300,7 @@
         this.$router.push("/");
         return;
       }
+      this.getProfilePicture();
       this.getMessages();
       this.intervalId = setInterval(async () => {
         clearInterval(this.intervalId);
@@ -334,12 +328,11 @@
     background-color: #f7f7f7;
   }
   
-  .avatar {
-    width: 40px;
-    height: 40px;
-    border-radius: 50%;
-    margin-right: 10px;
-  }
+  .pfp-img {
+  width: 120%; /* Ensures full coverage */
+  height: 120%;
+  object-fit: cover; /* Ensures image fits without stretching */
+}
   
   .messages ul {
     list-style-type: none;
