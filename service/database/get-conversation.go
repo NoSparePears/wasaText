@@ -34,7 +34,7 @@ func (db *appdbimpl) GetConversation(userID int, recID int) (structs.Conversatio
 			return structs.Conversation{}, errors.New("internal server error")
 		}
 
-		return convo, nil //success
+		return convo, nil // success
 	}
 
 	// no conversation found, so create one

@@ -149,7 +149,7 @@ type appdbimpl struct {
 // New returns a new instance of AppDatabase based on the SQLite connection `db`.
 // `db` is required - an error will be returned if `db` is `nil`.
 func New(db *sql.DB) (AppDatabase, error) {
-	//check if the database is nil (required)
+	// check if the database is nil (required)
 	if db == nil {
 		return nil, errors.New("database is required when building a AppDatabase")
 	}
