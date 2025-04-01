@@ -1,79 +1,12 @@
 <template>
-    <!--Group Info View 
-    <div class="group-info-view">
-        
-        <header class="group-header">
-            <button class="back-button" @click="goBackToGroup">←</button>
-            <div class="group-avatar-container">
-                <img :src="avatar" alt="Group Avatar" class="group-avatar" />
-                <button class="edit-btn" @click="toggleAvatarModal">✎</button>
-            </div>
-            <div class="group-name">
-                <button @click="toggleNameModal">
-                  <svg class="feather"><use href="/feather-sprite-v4.29.0.svg#edit-3"></use></svg>
-                </button>
-                <span class="text-lg font-semibold">{{ name }}</span>
-            </div>
-        </header>
-
-        
-        <section class="members-section">
-            
-            <button class="btn add-btn" @click="toggleSearchModal">
-                <svg class="feather"><use href="/feather-sprite-v4.29.0.svg#user-plus"></use></svg>
-                Add Member
-            </button>
-            <button class="btn leave-btn" @click="leaveGroup">Leave Group
-                <svg class="feather"><use href="/feather-sprite-v4.29.0.svg#log-out"></use></svg>
-
-            </button>
-
-            <h2>Members</h2>
-            <ul>
-                <li v-for="member in members" :key="member.id">
-                    <img :src="member.avatar || 'default_avatar.jpg'" alt="User Avatar" class="member-avatar" />
-                    {{ member.username }}
-                </li>
-            </ul>
-        </section>
-
-        
-        <div v-if="showNameModal" class="modal">
-            <div class="modal-content">
-                <h3>Edit Group Name</h3>
-                <input type="text" v-model="newGroupName" placeholder="Enter new name" />
-                <div class="modal-buttons">
-                    <button class="btn save-btn" @click="updateGroupName">Save</button>
-                    <button class="btn cancel-btn" @click="toggleNameModal">Cancel</button>
-                </div>
-            </div>
-        </div>
-
-        
-        <div v-if="showAvatarModal" class="modal">
-            <div class="modal-content">
-                <h3>Change Group Avatar</h3>
-                <input type="file" @change="handleAvatarUpload" />
-                <div class="modal-buttons">
-                    <button class="btn save-btn" @click="updateGroupAvatar">Save</button>
-                    <button class="btn cancel-btn" @click="toggleAvatarModal">Cancel</button>
-                </div>
-            </div>
-        </div>
-        
-        <Search :show="searchModalVisible" @close="toggleSearchModal" @user-selected="addMember" title="search">
-          <template v-slot:header>
-            <h3>Select User</h3>
-          </template>
-        </Search>
-
-    </div>
-    --> 
-
     <header>
       <h1>Group Info</h1>
     </header>
-
+    <!-- Button to go back to group -->
+    <button @click="goBackToGroup" class="btn go-back-btn">
+      <svg class="feather"><use href="/feather-sprite-v4.29.0.svg#arrow-left"></use></svg>
+      Go Back to Group
+    </button>
     <div class="info-view">
         <!-- Sezione Name a sinistra -->
         <section class="username">
@@ -321,6 +254,22 @@ export default {
                 console.error('Error adding member to group:', error);
             }
         },
+        async leaveGroup(){
+          this.errormsg = '';
+          const token = sessionStorage.getItem('token');
+          const userID = sessionStorage.getItem('id');
+          try {
+            await this.$axios.delete(`/profiles/${userID}/groups/${this.groupID}`, 
+                {headers: { 'Authorization': token }
+                });
+            this.$router.push({
+                path: `/home`,
+            })
+          } catch (error) {
+                this.errormsg = error.response?.data?.message || 'Error leaving group';
+                console.error('Error leaving group:', error);
+          }
+        }
     },
     mounted() {
         if (!sessionStorage.getItem('token')) {

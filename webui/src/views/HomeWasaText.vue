@@ -59,6 +59,8 @@
             <img :src="`data:image/jpeg;base64,${group.group.photo}`" alt="Group avatar" class="group-photo"/>
             <div class="group-preview">
               <span class="group-name">{{ group.group.groupName }}</span>
+              <span class="last-message-timestamp">{{ formatTimestamp(group.lastMessage.timestamp) }}</span>
+              <span class="last-message">{{ group.lastMessage.content }}</span>
             </div>
           </li>
         </ul>
