@@ -49,15 +49,20 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 	}
 
 	// Create group in database
+	ctx.Logger.Info("Creating group in database")
 	group, err := rt.db.CreateGroup(input.Name, userID)
 	if err != nil {
+		ctx.Logger.WithError(err).Error("Failed to create group in database")
 		InternalServerError(w, err, ctx)
 		return
 	}
+	ctx.Logger.Infof("Group created with ID: %d", group.GlobalConvoID)
 
 	// Retrieve creator details
+	ctx.Logger.Info("Fetching creator details")
 	creator, err := rt.db.SearchUserID(userID)
 	if err != nil {
+		ctx.Logger.WithError(err).Error("Failed to fetch creator details")
 		InternalServerError(w, err, ctx)
 		return
 	}
@@ -66,7 +71,9 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 
 	// Add selected users to group
 	for _, member := range input.Members {
+		ctx.Logger.Infof("Adding user ID %d to group", member.ID)
 		if err := rt.db.AddToGroup(member.ID, group.GlobalConvoID); err != nil {
+			ctx.Logger.WithError(err).Errorf("Failed to add user ID %d to group", member.ID)
 			InternalServerError(w, err, ctx)
 			return
 		}
@@ -80,4 +87,5 @@ func (rt *_router) createGroup(w http.ResponseWriter, r *http.Request, ps httpro
 		http.Error(w, "Failed to encode response", http.StatusInternalServerError)
 		return
 	}
+	ctx.Logger.Info("Group created successfully and response sent")
 }

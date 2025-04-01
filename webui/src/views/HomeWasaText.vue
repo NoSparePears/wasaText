@@ -3,7 +3,7 @@
     <header>
       
       <div class="header-buttons">
-        <button @click="toggleSearchModal" class="button">
+        <button @click="toggleSearchUserModal" class="button">
           <svg class="feather"><use href="/feather-sprite-v4.29.0.svg#edit"></use></svg>
           New Chat
         </button>
@@ -19,7 +19,12 @@
     </header>
     
     <!-- Modal for searching users to start a new conversation -->
-    <Search :show="searchModalVisible" @close="toggleSearchModal" @user-selected="createNewChat" title="search">
+    <Search 
+      :show="searchUserModalVisible"
+      @close="toggleSearchUserModal" 
+      @user-selected="createNewChat" 
+      title="Search Users"
+    >
       <template v-slot:header>
         <h3>Users</h3>
       </template>
@@ -51,7 +56,7 @@
         <h3>Groups</h3>
         <ul v-if="groups.length > 0" class="group-list">
           <li v-for="group in groups" :key="group.group.groupID" @click="openGroup(group.group)" class="group-item">
-            <img :src="group.group.photo" alt="Group avatar" class="group-photo"/>
+            <img :src="`data:image/jpeg;base64,${group.group.photo}`" alt="Group avatar" class="group-photo"/>
             <div class="group-preview">
               <span class="group-name">{{ group.group.groupName }}</span>
             </div>
@@ -70,26 +75,33 @@
         <h3>Create New Group</h3>
       
         <!-- Group Name Input -->
-        <input v-model="groupName" type="text" placeholder="Enter group name..." class="input-field"/>
+        <input v-model="groupName" type="text" placeholder="Enter group name..." class="input-field" />
       
-        <!-- User Selection -->
-        <Search :show="searchModalVisible" @close="toggleSearchModal" @user-selected="addUserToGroup" title="search">
-          <template v-slot:header>
-            <h3>Select Users</h3>
-          </template>
-        </Search>
-
+        
+      
         <ul>
           <li v-for="user in selectedUsers" :key="user.id">
             {{ user.username }}
           </li>
         </ul>
       
-        <button @click="toggleSearchModal" class="button">Add Users</button>
+        <button @click="toggleSearchGroupModal" class="button">Add Users</button>
         <button @click="createGroup" class="button">Done</button>
         <button @click="toggleGroupModal" class="button close-button">Cancel</button>
       </div>
     </div>
+
+    <!-- User Selection for group-->
+    <Search 
+      :show="searchGroupModalVisible"
+      @close="toggleSearchGroupModal" 
+      @user-selected="addUserToGroup" 
+      title="Select Users"
+    >
+      <template v-slot:header>
+        <h3>Select Users</h3>
+      </template>
+    </Search>
 
     
   </div>
@@ -104,7 +116,8 @@ export default {
   },
   data() {
     return {
-      searchModalVisible: false,
+      searchUserModalVisible: false, // for private chat
+      searchGroupModalVisible: false, // for group user search
       groupModalVisible: false,
       conversations: [],
       groupName: '',
@@ -115,8 +128,11 @@ export default {
     };
   },
   methods: {
-    toggleSearchModal() {
-      this.searchModalVisible = !this.searchModalVisible;
+    toggleSearchUserModal() {
+      this.searchUserModalVisible = !this.searchUserModalVisible;
+    },
+    toggleSearchGroupModal() {
+      this.searchGroupModalVisible = !this.searchGroupModalVisible;
     },
     toggleGroupModal() {
       this.groupModalVisible = !this.groupModalVisible;
@@ -162,7 +178,7 @@ export default {
         this.conversations.push(response.data);
     
         this.openChat(response.data);
-        this.toggleSearchModal();
+        this.toggleSearchUserModal();
   
       } catch (error) {
         this.errormsg = error.response?.data?.message || 'Error creating new chat';

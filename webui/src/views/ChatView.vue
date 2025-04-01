@@ -235,9 +235,10 @@
           this.text = null;
           this.photo = null;
           this.$refs.fileInput.value = ""; // Clear file input
+          this.clearImage(); // Clear image preview
           // Assuming response.data is the message object itself now, not wrapped in a 'message' field
           this.messages.push(response.data);
-            
+          this.getMessages(); // Refresh messages
         } catch (error) {
             this.errormsg = error;
             console.error('Error sending message:', error);
