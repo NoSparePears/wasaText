@@ -162,7 +162,7 @@
         const token = sessionStorage.getItem('token');
         try {
           let response = await this.$axios.get(`/profiles/${userID}/conversations/${this.destID}/messages`, {
-            headers: { 'Authorization': sessionStorage.getItem('token') }
+            headers: { 'Authorization': token }
           });
           this.messages = response.data;
           if (!this.messages) this.messages = [];
@@ -575,7 +575,7 @@
 .feather {
     width: 16px;
     height: 16px;
-    stroke: red;
+    stroke: #9e9e9e;
 }
   .delete-button {
   background: none;

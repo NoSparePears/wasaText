@@ -23,7 +23,7 @@ func (db *appdbimpl) GetGroupMessages(userID int, groupID int) ([]structs.Messag
 		// Scan the message fields
 		err = rows.Scan(
 			&message.MsgID, &message.ConvoID, &message.SenderID, &message.Content,
-			&message.Timestamp, &message.CheckSent, &message.CheckReceived,
+			&message.Timestamp, &message.IsPhoto, &message.IsForwarded, &message.CheckSent, &message.CheckReceived,
 		)
 		if err != nil {
 			return nil, err

@@ -11,13 +11,18 @@
             <p v-if="!messages.length">No messages yet</p>
             <ul>
                 <li v-for="msg in messages" :key="msg.message.msgID"
-                    :class="{'own-message': isOwnMessage(msg.message.senderID), 'other-message': !isOwnMessage(msg.message.senderID)}" @click="openMessageOptions(msg.message)">
+                    :class="{'own-message': isOwnMessage(msg.message.senderID), 'other-message': !isOwnMessage(msg.message.senderID)}" 
+                    @click="openMessageOptions(msg.message)">
                     
                     <!-- Display sender's name -->
                     <span class="message-sender">{{ msg.user.username }}</span>
                     <div class="message-wrapper">
                     <div class="message-bubble">
-                      <span class="message-content">{{ msg.message.content }}</span>
+                      <!-- Check if message contains a photo -->
+                      <div v-if="msg.message.isPhoto">
+                        <img :src="`data:image/jpeg;base64,${msg.message.content}`" alt="Sent Image" class="message-image" />
+                      </div>
+                      <span v-else class="message-content">{{ msg.message.content }}</span>
                     </div> 
                   
                     <div class="message-meta" v-if="isOwnMessage(msg.message.senderID)">
@@ -46,26 +51,48 @@
                 </li>
             </ul>
         </div>
-        
-        <!-- Input per inviare un messaggio testuale -->
+
+        <!-- Input per inviare un messaggio -->
         <div class="input-group">
-            <input type="text" class="form-control" v-model="text" placeholder="Type your message here">
-            <button class="btn btn-outline-primary" @click="sendMessage()">Send</button>
+          <!-- Text Input for Messages -->
+          <input type="text" class="form-control" v-model="text" placeholder="Type your message here">
+
+          <!-- Hidden File Input for Image Upload -->
+          <input type="file" ref="fileInput" @change="handleFileUpload" accept="image/*" style="display: none;">
+
+          <!-- Plus Icon to Trigger File Upload -->
+          <button class="btn btn-outline-secondary upload-btn" @click="triggerFileUpload">
+            <svg class="feather"><use href="/feather-sprite-v4.29.0.svg#plus-circle"></use></svg>
+          </button>
+        
+          <!-- Send Button -->
+          <button class="btn btn-outline-primary" @click="sendMessage">Send</button>
         </div>
 
+        <!-- Image Preview (Only shown if an image is selected) -->
+        <div v-if="photoPreview" class="image-preview">
+          <img :src="photoPreview" alt="Selected Image" class="preview-img">
+          <button class="btn btn-danger btn-sm remove-btn" @click="clearImage">X</button>
+        </div>
         <!-- Modal for message options -->
         <div v-if="showModal" class="message-options-modal">
-            <div class="modal-content">
-                <h3>What would you like to do with this message?</h3>
-                <button @click="toggleCommentModal" class="btn btn-primary">Comment</button>
-                <button @click="deleteMessage" class="btn btn-danger">Delete</button>
-                <button @click="closeModal" class="btn btn-secondary">Cancel</button>
-            </div>
+          <div class="modal-content">
+            <h3>What would you like to do with this message?</h3>
+            <button @click="toggleCommentModal" class="btn btn-primary">Comment</button>
+            <button @click="toggleSearchModal" class="btn btn-primary">Forward</button>
+            <button @click="deleteMessage" class="btn btn-danger">Delete</button>
+            <button @click="closeModal" class="btn btn-secondary">Cancel</button>
+          </div>
         </div>
+        <!-- Modal for searching users to whom forward a message -->
+        <Search :show="searchModalVisible" @close="toggleSearchModal" @user-selected="forwardMessage" title="search">
+          <template v-slot:header>
+            <h3>Users</h3>
+          </template>
+        </Search>
         <!-- Modal for commenting a message -->
         <Comment :show="commentModalVisible" :msg="selectedMessage" @close="toggleCommentModal" @emoji-selected="commentMessage" />
-
-    </div>
+      </div>
 </template>
 
 <script>
@@ -85,6 +112,7 @@ export default {
             messages: [], // Lista dei messaggi
             text: null, // Testo del messaggio da inviare
             photo: null, // Foto da inviare
+            photoPreview: null,
             showModal: false, // Mostra il modal per le opzioni del messaggio
             selectedMessage: null, // Messaggio selezionato per le opzioni
             errormsg: '', // Messaggio di errore
@@ -105,19 +133,63 @@ export default {
           this.errormsg = '';
           const userID = sessionStorage.getItem('id');
           const token = sessionStorage.getItem('token');
+          // aggiungi possibilità per mandare foto
+          if (!this.text && !this.photo) {
+            return; // Prevent sending empty messages
+          }
           try {
-              let response = await this.$axios.post(`/profiles/${userID}/groups/${this.groupID}/messages`, { content: this.text }, {
-              headers: { 'Authorization': token }
-              })
-              // Reset the variables used for sending the message
-              this.text = null;
-              this.photo = null;
-              // Assuming response.data is the message object itself now, not wrapped in a 'message' field
-              this.messages.push(response.data);
+            let formData = new FormData();
+
+            if (this.photo) {
+              formData.append('image', this.photo);
+              formData.append("isPhoto", 1);
+            }
+            if (this.text) {
+              formData.append('content', this.text);
+              formData.append("isPhoto", 0);
+            }
+            let response = await this.$axios.post(
+              `/profiles/${userID}/groups/${this.groupID}/messages`, 
+              formData, 
+              {
+                headers: { 
+                  'Authorization': token,
+                  'Content-Type': 'multipart/form-data',
+                }
+              }
+            );
+            // Reset the variables used for sending the message
+            this.text = null;
+            this.photo = null;
+            this.$refs.fileInput.value = ""; // Clear file input
+            this.clearImage(); // Clear image preview
+            // Assuming response.data is the message object itself now, not wrapped in a 'message' field
+            this.messages.push(response.data);
+            this.fetchMessages();
           } catch (error) {
               this.errormsg = error;
               console.error('Error sending message:', error);
           }
+      },
+      // Open file selection when the plus icon is clicked
+      triggerFileUpload() {
+        this.$refs.fileInput.click();
+      },
+    
+      // Handle the selected image and show a preview
+      handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+          this.photo = file;
+          this.photoPreview = URL.createObjectURL(file); // Create a preview URL
+        }
+      },
+    
+      // Clear selected image
+      clearImage() {
+        this.photo = null;
+        this.photoPreview = null;
+        this.$refs.fileInput.value = "";
       },
       async getProfilePicture() {
         const userID = sessionStorage.getItem('id');
@@ -143,7 +215,7 @@ export default {
           const token = sessionStorage.getItem('token');
           try {
             let response = await this.$axios.get(`/profiles/${userID}/groups/${this.groupID}/messages`, {
-              headers: { 'Authorization': sessionStorage.getItem('token') }
+              headers: { 'Authorization': token }
           });
           this.messages = response.data;
           if (!this.messages) this.messages = [];
@@ -249,6 +321,31 @@ export default {
           this.errormsg = error.response?.data?.message || 'Error deleting comment';
           console.error('Error deleting comment:', error);
         }
+      },
+      async forwardMessage(destUser) {
+        this.errormsg = '';
+        const userID = sessionStorage.getItem('id');
+        const token = sessionStorage.getItem('token');
+
+        try {
+          const openChat = await this.$axios.get(`/profiles/${userID}/conversations/${destUser.id}`, {
+            headers: { 'Authorization': token }
+          });
+          // Check if request was successful
+          if (openChat.status === 200) {
+            console.log('Chat opened successfully');
+          } else {
+            throw new Error('Request failed with status: ${response.status}');
+          }     
+          const response = await this.$axios.post(`/profiles/${userID}/conversations/${this.groupID}/messages/${this.selectedMessage.msgID}`, {destID: destUser.id}, {
+            headers: { 'Authorization': token }
+          });
+          this.toggleSearchModal();
+          this.closeModal();
+        } catch (error) {
+          console.error('Error in requests:', error);
+        }
+        
       },
       goToInfo() {
           console.log('Navigating to group info');
@@ -377,6 +474,17 @@ export default {
   .other-message .message-wrapper {
     align-items: flex-start;
   }
+
+  .message-content {
+      font-size: 14px;
+  }
+
+  .message-image {
+      max-width: 100%;
+      border-radius: 5px;
+      display: block;
+  }
+
   
   .message-meta {
     font-size: 12px;
@@ -477,5 +585,35 @@ export default {
 
 .delete-button:hover svg {
   fill: #cc0000;
+}
+
+.feather {
+    width: 16px;
+    height: 16px;
+    stroke: #9e9e9e;
+}
+
+.upload-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.image-preview {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.preview-img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 5px;
+  margin-right: 10px;
+}
+
+.remove-btn {
+  border: none;
+  cursor: pointer;
 }
   </style>

@@ -89,7 +89,7 @@ type AppDatabase interface {
 	// It sends a Message
 	InsertMessage(msg structs.Message) (int, string, error)
 
-	InsertGroupMessage(msg structs.Message) (structs.Message, error)
+	InsertGroupMessage(msg structs.Message) (int, string, error)
 
 	// It deletes a Message
 	DeleteMessage(msgID int, convoID int) error
