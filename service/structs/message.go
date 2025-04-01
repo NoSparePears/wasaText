@@ -9,4 +9,5 @@ type Message struct {
 	Timestamp     string `json:"timestamp"` // Formato `RFC3339` (ISO 8601)
 	CheckSent     bool   `json:"sent"`
 	CheckReceived bool   `json:"received"`
+	IsForwarded   int    `json:"isForwarded"`
 }

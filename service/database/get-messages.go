@@ -9,7 +9,7 @@ import (
 var query_GETCONVERSATIONID = `SELECT globalConvoID FROM Conversation WHERE userID = ? AND destUserID = ?;`
 
 var query_MSGINFO = `
-	SELECT m.msgID, m.convoID, m.senderID, m.content, m.timestamp, 
+	SELECT m.msgID, m.convoID, m.senderID, m.content, m.timestamp, m.isPhoto, m.isForwarded,
 	       COALESCE(c.sent, FALSE), COALESCE(c.read, FALSE)
 	FROM Message m
 	LEFT JOIN Checkmarks c ON m.msgID = c.msgID
@@ -45,7 +45,7 @@ func (db *appdbimpl) GetMessages(userID int, recID int) ([]structs.Message, erro
 		// Scan the message fields, ensuring boolean values don't become NULL
 		err = rows.Scan(
 			&message.MsgID, &message.ConvoID, &message.SenderID, &message.Content,
-			&message.Timestamp, &message.CheckSent, &message.CheckReceived,
+			&message.Timestamp, &message.IsPhoto, &message.IsForwarded, &message.CheckSent, &message.CheckReceived,
 		)
 		if err != nil {
 			return nil, err

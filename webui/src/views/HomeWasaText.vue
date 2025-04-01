@@ -200,9 +200,9 @@ export default {
         if (!this.groups) this.groups = [];
         this.groups.push(response.data);  
         
-        this.toggleGroupModal();  
-        this.openGroup(response.data);
         
+        this.openGroup(response.data);
+        this.toggleGroupModal();  
         
       } catch (error) {
         console.error("Error creating group:", error);
@@ -318,20 +318,14 @@ beforeUnmount() {
   padding: 10px;
 }
 
+
 .button {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  background: #0088cc; /* Telegram blue */
-  color: white;
-  font-size: 14px;
-  font-weight: bold;
+  margin-top: 10px;
+  padding: 10px;
   border: none;
-  border-radius: 50px; /* Fully rounded */
-  padding: 10px 15px;
+  background-color: #007bff;
+  color: white;
   cursor: pointer;
-  transition: background 0.3s ease, transform 0.1s ease-in-out;
-  box-shadow: 0px 4px 6px rgba(0, 136, 204, 0.3);
 }
 
 .button:hover {
@@ -417,14 +411,15 @@ beforeUnmount() {
   height: 100%;
   background: rgba(0, 0, 0, 0.5);
   display: flex;
-  justify-content: center;
   align-items: center;
+  justify-content: center;
 }
+
 .modal-content {
   background: white;
   padding: 20px;
-  border-radius: 10px;
-  width: 400px;
+  border-radius: 8px;
+  width: 300px;
   text-align: center;
 }
 .input-field, .file-input {

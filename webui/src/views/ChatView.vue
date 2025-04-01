@@ -10,10 +10,19 @@
         <p v-if="!messages.length">No messages yet.</p>
         <ul>
           <li v-for="message in messages" :key="message.message.msgID" 
-              :class="{'own-message': isOwnMessage(message.message.senderID), 'other-message': !isOwnMessage(message.message.senderID)}" @click="openMessageOptions(message.message)">
+              :class="{'own-message': isOwnMessage(message.message.senderID), 'other-message': !isOwnMessage(message.message.senderID)}" 
+              @click="openMessageOptions(message.message)">
             <div class="message-wrapper">
               <div class="message-bubble">
-                <span class="message-content">{{ message.message.content }}</span>
+                <!-- Forwarded Label -->
+                <span v-if="message.message.isForwarded" class="forwarded-label">Forwarded</span>
+
+                <!-- Check if message contains a photo -->
+                <div v-if="message.message.isPhoto">
+                  <img :src="`data:image/jpeg;base64,${message.message.content}`" alt="Sent Image" class="message-image" />
+                </div>
+                <span v-else class="message-content">{{ message.message.content }}</span>
+                
               </div> 
 
               <div class="message-meta" v-if="isOwnMessage(message.message.senderID)">
@@ -42,10 +51,27 @@
           </li>
         </ul>
       </div>
-      <!-- Input per inviare un messaggio testuale -->
+      <!-- Input per inviare un messaggio -->
       <div class="input-group">
-          <input type="text" class="form-control" v-model="text" placeholder="Type your message here">
-          <button class="btn btn-outline-primary" @click="sendMessage()">Send</button>
+        <!-- Text Input for Messages -->
+        <input type="text" class="form-control" v-model="text" placeholder="Type your message here">
+
+        <!-- Hidden File Input for Image Upload -->
+        <input type="file" ref="fileInput" @change="handleFileUpload" accept="image/*" style="display: none;">
+
+        <!-- Plus Icon to Trigger File Upload -->
+        <button class="btn btn-outline-secondary upload-btn" @click="triggerFileUpload">
+          <svg class="feather"><use href="/feather-sprite-v4.29.0.svg#plus-circle"></use></svg>
+        </button>
+      
+        <!-- Send Button -->
+        <button class="btn btn-outline-primary" @click="sendMessage">Send</button>
+      </div>
+
+      <!-- Image Preview (Only shown if an image is selected) -->
+      <div v-if="photoPreview" class="image-preview">
+        <img :src="photoPreview" alt="Selected Image" class="preview-img">
+        <button class="btn btn-danger btn-sm remove-btn" @click="clearImage">X</button>
       </div>
       <!-- Modal for message options -->
       <div v-if="showModal" class="message-options-modal">
@@ -87,6 +113,7 @@
         messages: [], // Lista dei messaggi
         text: null, // Testo del messaggio da inviare
         photo: null, // Foto da inviare
+        photoPreview: null,
         showModal: false, // Mostra il modal per le opzioni del messaggio
         selectedMessage: null, // Messaggio selezionato per le opzioni
         errormsg: '', // Messaggio di errore
@@ -180,22 +207,63 @@
         const userID = sessionStorage.getItem('id');
         const token = sessionStorage.getItem('token');
         // aggiungi possibilità per mandare foto
+        if (!this.text && !this.photo) {
+          return; // Prevent sending empty messages
+        }
         try {
-            let response = await this.$axios.post(`/profiles/${userID}/conversations/${this.destID}/messages`, { content: this.text }, {
-            headers: { 'Authorization': sessionStorage.getItem('token') }
-            })
-            // Reset the variables used for sending the message
-            this.text = null;
-            this.photo = null;
-            // Assuming response.data is the message object itself now, not wrapped in a 'message' field
-            this.messages.push(response.data);
+          let formData = new FormData();
+
+          if (this.photo) {
+            formData.append('image', this.photo);
+            formData.append("isPhoto", 1);
+          }
+          if (this.text) {
+            formData.append('content', this.text);
+            formData.append("isPhoto", 0);
+          }
+          let response = await this.$axios.post(
+            `/profiles/${userID}/conversations/${this.destID}/messages`,
+            formData,
+            {
+              headers: {
+                'Authorization': token,
+                'Content-Type': 'multipart/form-data',
+              },
+            }
+          );
+          // Reset the variables used for sending the message
+          this.text = null;
+          this.photo = null;
+          this.$refs.fileInput.value = ""; // Clear file input
+          // Assuming response.data is the message object itself now, not wrapped in a 'message' field
+          this.messages.push(response.data);
             
         } catch (error) {
             this.errormsg = error;
             console.error('Error sending message:', error);
         }
       },
-
+      // Open file selection when the plus icon is clicked
+      triggerFileUpload() {
+        this.$refs.fileInput.click();
+      },
+    
+      // Handle the selected image and show a preview
+      handleFileUpload(event) {
+        const file = event.target.files[0];
+        if (file) {
+          this.photo = file;
+          this.photoPreview = URL.createObjectURL(file); // Create a preview URL
+        }
+      },
+    
+      // Clear selected image
+      clearImage() {
+        this.photo = null;
+        this.photoPreview = null;
+        this.$refs.fileInput.value = "";
+      },
+    
       openMessageOptions(message) {
         // Store the selected message and show the modal
         this.selectedMessage = message;
@@ -263,7 +331,7 @@
           } else {
             throw new Error('Request failed with status: ${response.status}');
           }     
-          const response = await this.$axios.post(`/profiles/${userID}/conversations/${destUser.id}/messages`, {content: "forwarded: "+this.selectedMessage.content}, {
+          const response = await this.$axios.post(`/profiles/${userID}/conversations/${this.destID}/messages/${this.selectedMessage.msgID}`, {destID: destUser.id}, {
             headers: { 'Authorization': token }
           });
           this.toggleSearchModal();
@@ -397,6 +465,24 @@
   .other-message .message-wrapper {
     align-items: flex-start;
   }
+  .forwarded-label {
+    font-size: 12px;
+    color: #666;
+    font-weight: bold;
+    display: block;
+    margin-bottom: 5px;
+}
+
+
+.message-content {
+    font-size: 14px;
+}
+
+.message-image {
+    max-width: 100%;
+    border-radius: 5px;
+    display: block;
+}
   
   .message-meta {
     display: flex;
@@ -474,13 +560,22 @@
   }
 
   .comment-bubble {
-   background-color: #f0f0f0; /* Light gray */
-   padding: 8px;
-   margin-top: 4px;
-   border-radius: 8px;
-   font-size: 14px;
-   display: inline-block;
-  }
+    background-color: #f1f1f1;
+    padding: 5px;
+    border-radius: 5px;
+    margin-bottom: 5px;
+    display: flex;
+    align-items: center;
+}
+
+.own-comment {
+    background-color: #dcf8c6;
+}
+.feather {
+    width: 16px;
+    height: 16px;
+    stroke: red;
+}
   .delete-button {
   background: none;
   border: none;
@@ -499,5 +594,28 @@
 
 .delete-button:hover svg {
   fill: #cc0000;
+}
+.upload-btn svg {
+  width: 24px;
+  height: 24px;
+}
+
+.image-preview {
+  margin-top: 10px;
+  display: flex;
+  align-items: center;
+}
+
+.preview-img {
+  width: 80px;
+  height: 80px;
+  object-fit: cover;
+  border-radius: 5px;
+  margin-right: 10px;
+}
+
+.remove-btn {
+  border: none;
+  cursor: pointer;
 }
   </style>

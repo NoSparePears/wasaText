@@ -64,7 +64,7 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 	}
 
 	// Define storage path
-	uploadPath := fmt.Sprintf("./storage/%d/media/", groupID)
+	uploadPath := fmt.Sprintf("./storage/groups/%d/media/", groupID)
 	if err := os.MkdirAll(uploadPath, os.ModePerm); err != nil {
 		InternalServerError(w, err, ctx)
 		return

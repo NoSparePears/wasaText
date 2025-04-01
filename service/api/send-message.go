@@ -2,10 +2,10 @@ package api
 
 import (
 	"encoding/json"
-	"io"
 	"net/http"
 	"strconv"
 	"wasaText/service/api/reqcontext"
+	"wasaText/service/api/utils"
 	"wasaText/service/structs"
 
 	"github.com/julienschmidt/httprouter"
@@ -38,42 +38,70 @@ func (rt *_router) sendMessage(w http.ResponseWriter, r *http.Request, ps httpro
 		return
 	}
 
-	// Read the request body
-	body, err := io.ReadAll(r.Body)
-	if err != nil {
-		http.Error(w, "Failed to read request body", http.StatusBadRequest)
-		return
-	}
-	defer r.Body.Close()
-
-	// Parse JSON
-	var msg structs.Message
-	err = json.Unmarshal(body, &msg)
-	if err != nil {
-		http.Error(w, "Invalid JSON format", http.StatusBadRequest)
+	if err := r.ParseMultipartForm(5 << 20); err != nil { // 5MB max
+		BadRequest(w, err, ctx, "Failed to parse form")
 		return
 	}
 
-	msg.SenderID = sendID
+	content := r.FormValue("content") // Get text message
+	// convert directly to int
+	msgType, err := strconv.Atoi(r.FormValue("isPhoto"))
+	if err != nil {
+		BadRequest(w, err, ctx, "Invalid type value")
+		return
+	}
+
+	var base64Image string
+
+	// If it's an image (msgType == 1)
+	if msgType == 1 {
+		// Read the uploaded image file
+		file, _, err := r.FormFile("image")
+		if err != nil {
+			BadRequest(w, err, ctx, "Failed to read uploaded image")
+			return
+		}
+		defer file.Close()
+
+		// Convert the image file to a base64 string
+		base64Image, err = utils.EncodeImageToBase64(file)
+		if err != nil {
+			InternalServerError(w, err, ctx)
+			return
+		}
+
+		// Set content as base64 encoded image
+		content = base64Image
+	}
+
+	// Save message to database
+	newMessage := structs.Message{
+		SenderID: sendID,
+		Content:  content,
+		IsPhoto:  msgType, // 0 for text, 1 for image
+	}
+
 	id, err := rt.db.GetConvoID(sendID, recID)
 	if err != nil {
 		InternalServerError(w, err, ctx)
 		return
 	}
-	msg.ConvoID = id
+	newMessage.ConvoID = id
+	newMessage.IsForwarded = 0
 
 	// insert message inside db
-	dbMsg, err := rt.db.InsertMessage(msg)
+	msgID, timestamp, err := rt.db.InsertMessage(newMessage)
 	if err != nil {
 		InternalServerError(w, err, ctx)
 		return
 	}
-
-	msg.CheckSent = true
+	newMessage.MsgID = msgID
+	newMessage.Timestamp = timestamp
+	newMessage.CheckSent = true
 	// response
 	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(http.StatusOK)
-	if err = json.NewEncoder(w).Encode(dbMsg); err != nil {
+	if err = json.NewEncoder(w).Encode(newMessage); err != nil {
 		ctx.Logger.WithError(err).Error("Error encoding response")
 		http.Error(w, "Internal Server Error", http.StatusInternalServerError)
 		return

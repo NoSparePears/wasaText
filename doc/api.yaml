@@ -287,6 +287,23 @@ paths:
       - $ref: "#/components/parameters/user_id"
       - $ref: "#/components/parameters/convo_id"
       - $ref: "#/components/parameters/msg_id"
+    get:
+      tags: ["Conversation"]
+      summary: open existing message
+      operationId: getMessage
+      description: open an already created message
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: message opened succesfully
+          content:
+            plain/text:
+              schema: { $ref: "#/components/schemas/Message" }
+        "400": { $ref: "#/components/responses/BadRequest" }
+        "401": { $ref: "#/components/responses/Unauthorized" }
+        "403": { $ref: "#/components/responses/Forbidden" }
+        "500": { $ref: "#/components/responses/InternalServerError" }
     delete:
       tags: ["Conversation"]
       summary: delete message

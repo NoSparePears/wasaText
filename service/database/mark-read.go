@@ -8,7 +8,7 @@ func (db *appdbimpl) MarkMessagesAsRead(msgIDs []int) error {
 	}
 
 	// Construct the SQL query dynamically
-	query := `UPDATE Checkmarks SET read = TRUE, readTime = CURRENT_TIMESTAMP WHERE msgID IN (`
+	query := `UPDATE Checkmarks SET read = TRUE WHERE msgID IN (`
 	params := make([]interface{}, len(msgIDs))
 	for i, id := range msgIDs {
 		params[i] = id

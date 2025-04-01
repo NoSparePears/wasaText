@@ -80,12 +80,14 @@ type AppDatabase interface {
 
 	GetMessages(userID int, recID int) ([]structs.Message, error)
 
+	GetMessageContent(msgID int) (string, int, error)
+
 	GetMsgOwnerID(msgID int) (int, error)
 
 	GetLastMessage(convoID int, msgID int) (structs.Message, error)
 
 	// It sends a Message
-	InsertMessage(msg structs.Message) (structs.Message, error)
+	InsertMessage(msg structs.Message) (int, string, error)
 
 	InsertGroupMessage(msg structs.Message) (structs.Message, error)
 
