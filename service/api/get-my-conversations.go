@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"wasaText/service/api/reqcontext"
+	"wasaText/service/api/utils"
 	"wasaText/service/structs"
 
 	"github.com/julienschmidt/httprouter"
@@ -52,7 +53,18 @@ func (rt *_router) getMyConversations(w http.ResponseWriter, r *http.Request, ps
 			return
 		}
 		destUser.ID = destID
-
+		pfpPath, err := rt.db.GetUserPhotoPath(destID)
+		if err != nil {
+			InternalServerError(w, err, ctx)
+			return
+		}
+		// Crop & encode the profile picture as Base64
+		pfpBase64, err := utils.CropAndEncodeBase64(pfpPath, 200) // Crop to 200x200px
+		if err != nil {
+			InternalServerError(w, err, ctx)
+			return
+		}
+		destUser.UserPropic64 = pfpBase64
 		// Get last message (only if it exists)
 		lastMsg := structs.Message{Content: "No messages yet"}
 		if dbConvo.LastMsgID != 0 {

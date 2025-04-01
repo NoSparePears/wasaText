@@ -35,7 +35,7 @@
         <ul v-if="conversations.length>0" class="conversation-list">
           <li v-for="conversation in conversations" :key="conversation.DestUserID" @click="openChat(conversation)" class="conversation-item">
     
-            <img :src="conversation.destUser.photo" alt="User avatar" class="user-photo"/>
+            <img :src="`data:image/jpeg;base64,${conversation.destUser.photo}`" alt="User avatar" class="user-photo"/>
             <div class="chat-preview">
               <span class="username">{{ conversation.destUser.username }}</span>
               <span class="last-message-timestamp">{{ formatTimestamp(conversation.lastMessage.timestamp) }}</span>
