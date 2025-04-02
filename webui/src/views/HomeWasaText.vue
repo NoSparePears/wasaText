@@ -44,7 +44,13 @@
             <div class="chat-preview">
               <span class="username">{{ conversation.destUser.username }}</span>
               <span class="last-message-timestamp">{{ formatTimestamp(conversation.lastMessage.timestamp) }}</span>
-              <span class="last-message">{{ conversation.lastMessage.content }}</span>
+              <span class="last-message">
+            
+                <!-- Show camera icon if last message is a photo -->
+                <svg v-if="conversation.lastMessage.isPhoto" class="feather camera-icon"><use href="/feather-sprite-v4.29.0.svg#camera"></use></svg>
+                <span v-else>{{ conversation.lastMessage.content }}</span>
+
+              </span>
             </div>
 
           </li>
@@ -60,7 +66,12 @@
             <div class="group-preview">
               <span class="group-name">{{ group.group.groupName }}</span>
               <span class="last-message-timestamp">{{ formatTimestamp(group.lastMessage.timestamp) }}</span>
-              <span class="last-message">{{ group.lastMessage.content }}</span>
+              <span class="last-message">
+                
+                <!-- Show camera icon if last message is a photo -->
+                <svg v-if="group.lastMessage.isPhoto" class="feather camera-icon"><use href="/feather-sprite-v4.29.0.svg#camera"></use></svg>
+                <span v-else>{{ group.lastMessage.content }}</span>
+              </span>
             </div>
           </li>
         </ul>
