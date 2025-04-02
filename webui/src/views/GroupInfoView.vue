@@ -55,8 +55,7 @@
         <h2>Members</h2>
         <ul>
             <li v-for="member in members" :key="member.id">
-                <img :src="member.avatar || 'default_avatar.jpg'" alt="User Avatar" class="member-avatar" />
-                {{ member.username }}
+              <img v-if="member.photo && member.photo !== ''" :src="`data:image/jpeg;base64,${member.photo}`" alt="User Avatar" class="member-avatar" />                {{ member.username }}
             </li>
         </ul>
 
@@ -294,187 +293,250 @@ export default {
 </script>
 
 <style scoped>
+/* Global Styles */
+* {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
 body {
-  font-family: Arial, sans-serif;
-  background-color: #f3f4f6;
-  color: #333;
+  font-family: 'Arial', sans-serif;
+  background-color: #f5f6f7;
 }
-.header {
-  background: #ffffff;
-  padding: 15px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
+
+/* Header */
+header {
+  background-color: #0088cc;
+  color: white;
+  padding: 15px 20px;
   text-align: center;
+  border-radius: 20px 20px 0 0;
 }
-.profile-view {
-  display: flex;
-  justify-content: space-between;
+
+header h1 {
+  font-size: 24px;
+  font-weight: bold;
+}
+
+/* Buttons */
+button {
+  font-size: 14px;
+  padding: 10px 15px;
+  border-radius: 15px;
+  border: none;
+  cursor: pointer;
+  display: inline-flex;
   align-items: center;
-  padding: 20px;
-  background: white;
-  margin: 20px auto;
-  border-radius: 10px;
-  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+  background-color: #0088cc;
+  color: white;
+  transition: background-color 0.3s;
 }
+
+button svg {
+  margin-right: 8px;
+  fill: white;
+}
+
+button:hover {
+  background-color: #005f8a;
+}
+
+button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
+}
+
+/* Go Back Button */
+.go-back-btn {
+  margin: 20px 0;
+  font-size: 16px;
+  background-color: #4c6ef5;
+}
+
+.go-back-btn:hover {
+  background-color: #3b5ef5;
+}
+
+/* Info View */
+.info-view {
+  display: flex;
+  align-items: center;
+  margin-bottom: 20px;
+}
+
+.username {
+  flex-grow: 1;
+}
+
 .username-button {
   display: flex;
   align-items: center;
-  gap: 10px;
+  justify-content: space-between;
 }
-.icon-button {
-  background: transparent;
-  border: none;
-  cursor: pointer;
+
+.username-button button {
+  background: none;
+  color: #0088cc;
   padding: 5px;
 }
+
+.username-button span {
+  font-size: 18px;
+  font-weight: bold;
+}
+
+/* Profile Picture */
 .pfp-view {
   display: flex;
+  justify-content: space-between;
   align-items: center;
-  gap: 10px; /* Space between profile pic & button */
+  margin-bottom: 20px;
+}
+
+.edit-btn {
+  background: none;
+  border: none;
+  color: #0088cc;
+  font-size: 18px;
+  cursor: pointer;
 }
 
 .profile-picture {
-  width: 100px;  /* Circle size */
-  height: 100px;
-  border-radius: 50%; /* Makes it a circle */
-  overflow: hidden; /* Prevents image from spilling out */
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  background-color: #f0f0f0; /* Background color (optional) */
+  flex-grow: 1;
+  text-align: center;
 }
 
 .pfp-img {
-  width: 120%; /* Ensures full coverage */
-  height: 120%;
-  object-fit: cover; /* Ensures image fits without stretching */
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  object-fit: cover;
+  margin-top: 10px;
 }
 
-/* Edit Button */
-.edit-btn {
-  display: block;
-  margin-top: 10px;
-  background-color: #007bff;
-  color: white;
-  padding: 5px 10px;
-  border: none;
-  cursor: pointer;
-  border-radius: 5px;
-}
-.edit-btn:hover {
-  background-color: #0056b3;
-}
-.close {
-  position: absolute;
-  top: 10px;
-  right: 15px;
-  font-size: 24px;
-  cursor: pointer;
-}
-.input-field, .input-file {
-  width: 100%;
-  padding: 10px;
-  margin: 10px 0;
-  border: 1px solid #ddd;
-  border-radius: 5px;
-}
-.primary-button {
-  background: #0088cc;
-  color: white;
-  padding: 10px 15px;
-  border: none;
-  border-radius: 5px;
-  cursor: pointer;
-}
-.primary-button:hover {
-  background: #0077b3;
-}
+/* Modal */
 .modal {
   position: fixed;
   top: 0;
   left: 0;
   width: 100%;
   height: 100%;
-  background: rgba(0, 0, 0, 0.5);
+  background-color: rgba(0, 0, 0, 0.5);
   display: flex;
   justify-content: center;
   align-items: center;
-  animation: fadeIn 0.3s ease-in-out;
 }
 
 .modal-content {
-  background: #ffffff;
-  border-radius: 15px;
+  background-color: white;
   padding: 20px;
-  width: 320px;
-  box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.2);
+  border-radius: 20px;
   text-align: center;
-  animation: slideIn 0.3s ease-in-out;
+  width: 300px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
 }
 
-.modal-content h3 {
-  margin-bottom: 15px;
-  font-size: 18px;
+.close {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  font-size: 20px;
+  cursor: pointer;
   color: #0088cc;
 }
 
-.modal input {
-  width: 100%;
+.modal h2 {
+  margin-bottom: 20px;
+  font-size: 20px;
+  font-weight: bold;
+}
+
+input[type="text"], input[type="file"] {
   padding: 10px;
-  border-radius: 10px;
+  margin-top: 10px;
+  width: 100%;
+  border-radius: 15px;
   border: 1px solid #cccccc;
   outline: none;
   transition: border 0.3s;
-  font-size: 16px;
 }
 
-.modal input:focus {
+input[type="text"]:focus, input[type="file"]:focus {
   border: 1px solid #0088cc;
 }
 
-.modal-buttons {
+button[type="button"] {
+  margin-top: 10px;
+}
+
+/* Error Message */
+.error-msg {
+  color: #e74c3c;
+  font-size: 14px;
+  margin-top: 10px;
+}
+
+/* Members Section */
+.members-section {
+  padding: 15px;
+  background-color: white;
+  border-radius: 20px;
+  box-shadow: 0px 4px 12px rgba(0, 0, 0, 0.1);
+}
+
+.members-section h2 {
+  font-size: 18px;
+  font-weight: bold;
+  margin-bottom: 15px;
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+}
+
+li {
   display: flex;
-  justify-content: space-between;
-  margin-top: 15px;
-}
-
-.btn {
-  padding: 10px 15px;
+  align-items: center;
+  margin-bottom: 10px;
+  padding: 10px;
   border-radius: 10px;
+  background-color: #f1f1f1;
   cursor: pointer;
-  font-size: 16px;
-  transition: background 0.3s, transform 0.2s;
-  width: 48%;
+  transition: background-color 0.3s;
 }
 
-.save-btn {
-  background: #0088cc;
+li:hover {
+  background-color: #0088cc;
   color: white;
-  border: none;
 }
 
-.save-btn:hover {
-  background: #0077b6;
-  transform: scale(1.05);
+.member-avatar {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  margin-right: 10px;
+  object-fit: cover;
 }
 
-.cancel-btn {
-  background: #f1f1f1;
-  color: #333;
-  border: none;
+/* Add and Leave Buttons */
+.add-btn, .leave-btn {
+  margin: 5px;
+  font-size: 14px;
+  background-color: #4c6ef5;
 }
 
-.cancel-btn:hover {
-  background: #e0e0e0;
-  transform: scale(1.05);
+.add-btn:hover {
+  background-color: #3b5ef5;
 }
 
-@keyframes fadeIn {
-  from { opacity: 0; }
-  to { opacity: 1; }
+.leave-btn {
+  background-color: #f14c4c;
 }
 
-@keyframes slideIn {
-  from { transform: translateY(-10px); }
-  to { transform: translateY(0); }
+.leave-btn:hover {
+  background-color: #e03d3d;
 }
+
 </style>

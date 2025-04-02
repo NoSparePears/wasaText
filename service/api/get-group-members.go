@@ -5,6 +5,7 @@ import (
 	"net/http"
 	"strconv"
 	"wasaText/service/api/reqcontext"
+	"wasaText/service/api/utils"
 	"wasaText/service/structs"
 
 	"github.com/julienschmidt/httprouter"
@@ -41,6 +42,20 @@ func (rt *_router) GetGroupMembers(w http.ResponseWriter, r *http.Request, ps ht
 			InternalServerError(w, err, ctx)
 			return
 		}
+		// Get the photo from the database
+		pfpPath, err := rt.db.GetUserPhotoPath(dbMember.ID)
+		if err != nil {
+			InternalServerError(w, err, ctx)
+			return
+		}
+
+		// Crop & encode the profile picture as Base64
+		pfpBase64, err := utils.CropAndEncodeBase64(pfpPath, 200) // Crop to 200x200px
+		if err != nil {
+			InternalServerError(w, err, ctx)
+			return
+		}
+		user.UserPropic64 = pfpBase64
 		members = append(members, user)
 	}
 
