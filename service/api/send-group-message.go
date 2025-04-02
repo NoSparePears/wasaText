@@ -91,6 +91,7 @@ func (rt *_router) sendGroupMessage(w http.ResponseWriter, r *http.Request, ps h
 	newMessage.MsgID = msgID
 	newMessage.Timestamp = timestamp
 	newMessage.CheckSent = true
+	newMessage.CheckReceived = false
 
 	// response
 	w.Header().Set("Content-Type", "application/json")

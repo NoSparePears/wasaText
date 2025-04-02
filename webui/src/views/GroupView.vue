@@ -372,6 +372,7 @@ export default {
       }
       this.getProfilePicture();
       this.fetchMessages();
+      
       this.intervalId = setInterval(async () => {
         clearInterval(this.intervalId);
         await this.fetchMessages();

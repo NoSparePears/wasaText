@@ -134,11 +134,13 @@ type AppDatabase interface {
 	// User leaves group
 	LeaveGroup(userID int, groupID int) error
 
-	// It adds checkmark for a sent message, and its timestamp
+	// It adds checkmark for a sent message
 	AddSentCheck(msgID int) error
 
-	// It adds checkmark for reading a message, and its timestamp
+	// It adds checkmark for reading a message
 	MarkMessagesAsRead(msgIDs []int) error
+
+	MarkGroupMessagesAsRead(msgIDs []int, groupID int, userID int) error
 
 	Ping() error
 }
