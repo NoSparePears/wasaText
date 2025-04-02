@@ -287,23 +287,6 @@ paths:
       - $ref: "#/components/parameters/user_id"
       - $ref: "#/components/parameters/convo_id"
       - $ref: "#/components/parameters/msg_id"
-    get:
-      tags: ["Conversation"]
-      summary: open existing message
-      operationId: getMessage
-      description: open an already created message
-      security:
-        - bearerAuth: []
-      responses:
-        "200":
-          description: message opened succesfully
-          content:
-            plain/text:
-              schema: { $ref: "#/components/schemas/Message" }
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "403": { $ref: "#/components/responses/Forbidden" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
     delete:
       tags: ["Conversation"]
       summary: delete message
@@ -551,57 +534,6 @@ paths:
       responses:
         "200":
           description: message deleted succesfully
-          content:
-            plain/text:
-              schema: { $ref: "#/components/schemas/Ok" }
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "403": { $ref: "#/components/responses/Forbidden" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
-  /profiles/{user_id}/groups/{group_id}/messages/{msg_id}/comments:
-    parameters:
-      - $ref: "#/components/parameters/user_id"
-      - $ref: "#/components/parameters/group_id"
-      - $ref: "#/components/parameters/msg_id"
-    put:
-      tags: ["Group"]
-      summary: comment message
-      operationId: commentGroupMessage
-      description: user comments specific message with an emoji
-      security:
-        - bearerAuth: []
-      requestBody:
-        content:
-          application/json:
-            schema:
-              $ref: "#/components/schemas/Comment"
-        required: true
-      responses:
-        "200":
-          description: message commented succesfully
-          content:
-            plain/text:
-              schema: { $ref: "#/components/schemas/Ok" }
-        "400": { $ref: "#/components/responses/BadRequest" }
-        "401": { $ref: "#/components/responses/Unauthorized" }
-        "403": { $ref: "#/components/responses/Forbidden" }
-        "500": { $ref: "#/components/responses/InternalServerError" }
-  /profiles/{user_id}/groups/{group_id}/messages/{msg_id}/comments/{comm_id}:
-    parameters:
-      - $ref: "#/components/parameters/user_id"
-      - $ref: "#/components/parameters/group_id"
-      - $ref: "#/components/parameters/msg_id"
-      - $ref: "#/components/parameters/comm_id"
-    delete:
-      tags: ["Group"]
-      summary: delete comment
-      operationId: uncommentGroupMessage
-      description: user deletes comment that he already put on a message
-      security:
-        - bearerAuth: []
-      responses:
-        "200":
-          description: comment deleted succesfully
           content:
             plain/text:
               schema: { $ref: "#/components/schemas/Ok" }

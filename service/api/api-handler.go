@@ -45,16 +45,6 @@ func (rt *_router) Handler() http.Handler {
 
 	rt.router.GET("/profiles/:userID/groups/:groupID", rt.wrap(rt.getGroup, true))
 
-	rt.router.GET("/profiles/:userID/groups/:groupID/messages", rt.wrap(rt.getGroupMessages, true))
-
-	rt.router.POST("/profiles/:userID/groups/:groupID/messages", rt.wrap(rt.sendGroupMessage, true))
-
-	rt.router.DELETE("/profiles/:userID/groups/:groupID/messages/:msgID", rt.wrap(rt.deleteGroupMessage, true))
-
-	rt.router.PUT("/profiles/:userID/groups/:groupID/members", rt.wrap(rt.addToGroup, true))
-
-	rt.router.GET("/profiles/:userID/groups/:groupID/members", rt.wrap(rt.GetGroupMembers, true))
-
 	rt.router.DELETE("/profiles/:userID/groups/:groupID", rt.wrap(rt.leaveGroup, true))
 
 	rt.router.PUT("/profiles/:userID/groups/:groupID/g_name", rt.wrap(rt.setGroupName, true))
@@ -62,6 +52,16 @@ func (rt *_router) Handler() http.Handler {
 	rt.router.PUT("/profiles/:userID/groups/:groupID/g_photo", rt.wrap(rt.setGroupPhoto, true))
 
 	rt.router.GET("/profiles/:userID/groups/:groupID/g_photo", rt.wrap(rt.getGroupPhoto, true))
+
+	rt.router.PUT("/profiles/:userID/groups/:groupID/members", rt.wrap(rt.addToGroup, true))
+
+	rt.router.GET("/profiles/:userID/groups/:groupID/members", rt.wrap(rt.GetGroupMembers, true))
+
+	rt.router.GET("/profiles/:userID/groups/:groupID/messages", rt.wrap(rt.getGroupMessages, true))
+
+	rt.router.POST("/profiles/:userID/groups/:groupID/messages", rt.wrap(rt.sendGroupMessage, true))
+
+	rt.router.DELETE("/profiles/:userID/groups/:groupID/messages/:msgID", rt.wrap(rt.deleteGroupMessage, true))
 
 	return rt.router
 }
