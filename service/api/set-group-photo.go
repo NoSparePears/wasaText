@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"image"
 	"io"
-	"log"
 	"net/http"
 	"os"
 	"path/filepath"
@@ -60,7 +59,8 @@ func (rt *_router) setGroupPhoto(w http.ResponseWriter, r *http.Request, ps http
 
 	// Reset file reader (needed after decoding)
 	if _, err := file.Seek(0, io.SeekStart); err != nil {
-		log.Fatalf("failed to seek file: %v", err)
+		BadRequest(w, err, ctx, fmt.Sprintf("failed to seek file: %v", err))
+		return
 	}
 
 	// Define storage path

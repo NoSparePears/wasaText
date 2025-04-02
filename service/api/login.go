@@ -26,6 +26,7 @@ func (rt *_router) doLogin(w http.ResponseWriter, r *http.Request, ps httprouter
 	exists, err := rt.db.CheckUsername(user.Username)
 	if err != nil {
 		InternalServerError(w, err, ctx)
+		return
 	}
 	if !exists {
 		dbUser, err := rt.db.CreateUser(user.Username)
