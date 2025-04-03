@@ -116,8 +116,8 @@ export default {
             showModal: false, // Mostra il modal per le opzioni del messaggio
             selectedMessage: null, // Messaggio selezionato per le opzioni
             errormsg: '', // Messaggio di errore
-            searchModalVisible: false,  //mostra modale ricerca utenti
-            commentModalVisible: false, //mostra modale commento
+            searchModalVisible: false,  // mostra modale ricerca utenti
+            commentModalVisible: false, // mostra modale commento
         }
     },
     methods: {

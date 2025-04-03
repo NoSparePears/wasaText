@@ -309,15 +309,7 @@ paths:
         required: true
         content:
           application/json:
-            schema:
-              type: object
-              properties:
-                targetConvoID:
-                  type: integer
-                  description: ID della conversazione con cui `userID` vuole condividere il messaggio inoltrato
-                customContent:
-                  type: string
-                  description: (Opzionale) Testo aggiuntivo che l’utente può scrivere accanto al messaggio inoltrato
+            schema: { $ref: "#/components/schemas/Identificator"}
       tags: ["Conversation"]
       summary: forward message
       description: send existing message in the selected conversation
